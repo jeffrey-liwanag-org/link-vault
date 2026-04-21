@@ -9,7 +9,7 @@ const bookmarks = defineCollection({
     tags: z.array(z.string()),
     screenshot: z.string().optional(),
     savedAt: z.coerce.date(),
-    source: z.enum(['bookmarklet', 'manual']).default('bookmarklet'),
+    source: z.enum(['bookmarklet', 'manual', 'browser-import']).default('bookmarklet'),
     note: z.string().optional(),
   }),
 });

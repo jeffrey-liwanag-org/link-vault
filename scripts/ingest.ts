@@ -77,9 +77,9 @@ export async function makeSlug(title: string): Promise<string> {
 
 export async function writeMarkdown(slug: string, data: {
   url: string; title: string; description: string;
-  tags: string[]; screenshotPath?: string; source?: string;
+  tags: string[]; screenshotPath?: string; source?: string; savedAt?: Date;
 }) {
-  const date = new Date().toISOString().split('T')[0];
+  const date = (data.savedAt ?? new Date()).toISOString().split('T')[0];
   const screenshot = data.screenshotPath
     ? `/link-vault/screenshots/${path.basename(data.screenshotPath)}`
     : undefined;
@@ -133,4 +133,7 @@ async function main() {
   console.log(`✓ Done — src/content/bookmarks/${slug}.md`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch(err => { console.error(err); process.exit(1); });
+}
