@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BookmarkCard from '../../components/BookmarkCard.astro';
+import TagChip from '../../components/TagChip.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -20,12 +21,21 @@ const { tag } = Astro.params;
 const { bookmarks } = Astro.props;
 ---
 <BaseLayout title={`#${tag}`}>
-  <div class="mb-8">
-    <a href="/link-vault/tags" class="font-mono text-xs text-space-steel hover:text-accent transition-colors">
-      ← all tags
+
+  <div class="mb-10">
+    <a href="/link-vault/tags" class="inline-flex items-center gap-2 font-bold text-sm text-slate-400 hover:text-emerald-600 transition-colors mb-6">
+      <iconify-icon icon="lucide:arrow-left"></iconify-icon>
+      All tags
     </a>
-    <h1 class="text-2xl font-light tracking-widest uppercase mt-4 mb-2">#{tag}</h1>
-    <p class="text-space-steel text-sm">{bookmarks.length} bookmark{bookmarks.length !== 1 ? 's' : ''}</p>
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-200/50">
+        <iconify-icon icon="lucide:hash" class="text-2xl"></iconify-icon>
+      </div>
+      <div>
+        <h1 class="text-3xl font-black tracking-tight text-slate-900">#{tag}</h1>
+        <p class="text-slate-400 font-bold text-sm">{bookmarks.length} bookmark{bookmarks.length !== 1 ? 's' : ''}</p>
+      </div>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

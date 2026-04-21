@@ -14,15 +14,32 @@ const tagCounts = sorted.reduce<Record<string, number>>((acc, b) => {
 const allTags = Object.keys(tagCounts).sort();
 ---
 <BaseLayout title="All Bookmarks">
-  <div class="mb-8">
-    <h1 class="text-2xl font-light tracking-widest uppercase mb-2">All Bookmarks</h1>
-    <p class="text-space-steel text-sm">{sorted.length} saved</p>
+
+  <!-- Page header -->
+  <div class="mb-10">
+    <div class="flex items-center gap-4 mb-2">
+      <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200/50">
+        <iconify-icon icon="lucide:bookmark" class="text-2xl"></iconify-icon>
+      </div>
+      <div>
+        <h1 class="text-3xl font-black tracking-tight text-slate-900">All Bookmarks</h1>
+        <p class="text-slate-400 font-bold text-sm">{sorted.length} saved</p>
+      </div>
+    </div>
   </div>
 
-  <div class="flex flex-wrap gap-2 mb-8">
-    {allTags.map(tag => <TagChip tag={tag} count={tagCounts[tag]} />)}
+  <!-- Tag filters -->
+  <div class="bg-white border border-slate-100 rounded-5xl p-6 shadow-sm mb-8">
+    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+      <iconify-icon icon="lucide:tag" class="text-emerald-500"></iconify-icon>
+      Filter by tag
+    </p>
+    <div class="flex flex-wrap gap-2">
+      {allTags.map(tag => <TagChip tag={tag} count={tagCounts[tag]} />)}
+    </div>
   </div>
 
+  <!-- Bookmark grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {sorted.map(b => (
       <BookmarkCard

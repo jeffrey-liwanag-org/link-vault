@@ -9,11 +9,16 @@ const { tag, count, active = false } = Astro.props;
 <a
   href={`/link-vault/tags/${tag}`}
   class:list={[
-    'font-mono text-xs px-3 py-1 rounded-full border transition-colors',
+    'inline-flex items-center gap-1.5 font-mono text-xs px-4 py-2 rounded-full border font-bold transition-all',
     active
-      ? 'border-accent text-accent bg-accent/10'
-      : 'border-space-steel/40 text-space-steel hover:border-accent/50 hover:text-accent/80',
+      ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-200/50'
+      : 'bg-white border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50 shadow-sm',
   ]}
 >
-  {tag}{count !== undefined && <span class="ml-1 opacity-50">({count})</span>}
+  #{tag}
+  {count !== undefined && (
+    <span class:list={['px-1.5 py-0.5 rounded-full text-[9px]', active ? 'bg-white/20' : 'bg-slate-100 text-slate-400']}>
+      {count}
+    </span>
+  )}
 </a>

@@ -10,16 +10,24 @@ export default {
           mid: '#1B2735',
           steel: '#38495a',
         },
-        accent: '#7DD3FC',
       },
       fontFamily: {
-        sans: ['Lato', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      borderRadius: {
+        '4xl': '2rem',
+        '5xl': '2.5rem',
+        '6xl': '3rem',
       },
       keyframes: {
         animStar: {
           from: { transform: 'translateY(0px)' },
           to: { transform: 'translateY(-2000px)' },
+        },
+        shine: {
+          '0%': { left: '-100%' },
+          '100%': { left: '100%' },
         },
       },
       animation: {

@@ -15,42 +15,58 @@ const dateStr = data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month
 ---
 <BaseLayout title={data.title}>
   <div class="max-w-2xl mx-auto">
-    <div class="mb-6">
-      <a href="/link-vault/bookmarks" class="font-mono text-xs text-space-steel hover:text-accent transition-colors">
-        ← all bookmarks
-      </a>
-    </div>
 
-    {data.screenshot && (
-      <div class="rounded-lg overflow-hidden border border-space-steel/20 mb-6">
-        <img src={data.screenshot} alt={data.title} class="w-full" />
+    <!-- Back link -->
+    <a href="/link-vault/bookmarks" class="inline-flex items-center gap-2 font-bold text-sm text-slate-400 hover:text-emerald-600 transition-colors mb-8">
+      <iconify-icon icon="lucide:arrow-left"></iconify-icon>
+      All bookmarks
+    </a>
+
+    <!-- Card -->
+    <div class="bg-white border border-slate-100 rounded-6xl p-8 shadow-sm">
+
+      {data.screenshot && (
+        <div class="rounded-5xl overflow-hidden border border-slate-100 mb-8">
+          <img src={data.screenshot} alt={data.title} class="w-full" />
+        </div>
+      )}
+
+      <!-- Domain -->
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-7 h-7 bg-sky-100 rounded-lg flex items-center justify-center">
+          <iconify-icon icon="lucide:link" class="text-sky-500 text-sm"></iconify-icon>
+        </div>
+        <span class="font-mono text-xs text-slate-400 font-bold">{domain}</span>
       </div>
-    )}
 
-    <p class="font-mono text-xs text-space-steel mb-2">{domain}</p>
-    <h1 class="text-xl font-semibold mb-4 leading-snug">{data.title}</h1>
-    <p class="text-space-steel leading-relaxed mb-6">{data.description}</p>
+      <h1 class="text-2xl font-black text-slate-900 leading-snug mb-4">{data.title}</h1>
+      <p class="text-slate-500 leading-relaxed font-medium mb-6">{data.description}</p>
 
-    <div class="flex flex-wrap gap-2 mb-6">
-      {data.tags.map(tag => <TagChip tag={tag} />)}
-    </div>
-
-    {data.note && (
-      <div class="border-l-2 border-accent/40 pl-4 mb-6">
-        <p class="text-sm text-space-steel italic">{data.note}</p>
+      <!-- Tags -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        {data.tags.map(tag => <TagChip tag={tag} />)}
       </div>
-    )}
 
-    <div class="flex items-center justify-between pt-4 border-t border-space-steel/20">
-      <p class="font-mono text-xs text-space-steel/50">{dateStr}</p>
-      <a
-        href={data.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="font-mono text-xs px-4 py-2 border border-accent/40 text-accent rounded-full hover:bg-accent/10 transition-colors"
-      >
-        Open URL ↗
-      </a>
+      <!-- Note -->
+      {data.note && (
+        <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6">
+          <p class="text-sm text-amber-700 font-medium italic">{data.note}</p>
+        </div>
+      )}
+
+      <!-- Footer row -->
+      <div class="flex items-center justify-between pt-6 border-t border-slate-100">
+        <span class="font-mono text-xs text-slate-300 font-bold">{dateStr}</span>
+        <a
+          href={data.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-emerald-200/50 hover:scale-105"
+        >
+          Open link
+          <iconify-icon icon="lucide:external-link"></iconify-icon>
+        </a>
+      </div>
     </div>
   </div>
 </BaseLayout>

@@ -4,15 +4,47 @@
 
 @layer base {
   body {
-    @apply bg-space-deepest text-white font-sans;
+    font-family: 'Plus Jakarta Sans', sans-serif;
   }
 }
 
 @layer utilities {
+  /* Hero gradient text */
   .text-gradient-space {
     background: linear-gradient(to bottom, white 0%, #38495a 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Subtle dot grid for light pages */
+  .bg-grid {
+    background-image: radial-gradient(circle, #cbd5e1 1.2px, transparent 1.2px);
+    background-size: 50px 50px;
+  }
+
+  /* Glassmorphism nav */
+  .glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  /* Shine sweep on cards */
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
   }
 }
