@@ -20,35 +20,30 @@ export async function getStaticPaths() {
 const { tag } = Astro.params;
 const { bookmarks } = Astro.props;
 ---
-<BaseLayout title={`#${tag}`}>
+<BaseLayout title={`${tag}`}>
+  <div class="max-w-6xl mx-auto px-6">
 
-  <div class="mb-10">
-    <a href="/link-vault/tags" class="inline-flex items-center gap-2 font-bold text-sm text-slate-400 hover:text-emerald-600 transition-colors mb-6">
-      <iconify-icon icon="lucide:arrow-left"></iconify-icon>
-      All tags
-    </a>
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-200/50">
-        <iconify-icon icon="lucide:hash" class="text-2xl"></iconify-icon>
-      </div>
-      <div>
-        <h1 class="text-3xl font-black tracking-tight text-slate-900">#{tag}</h1>
-        <p class="text-slate-400 font-bold text-sm">{bookmarks.length} bookmark{bookmarks.length !== 1 ? 's' : ''}</p>
-      </div>
+    <div class="mb-10 reveal">
+      <a href="/link-vault/tags" class="inline-flex items-center gap-1.5 text-sm text-warm-500 hover:text-warm-950 transition-colors mb-6 font-medium">
+        ← All tags
+      </a>
+      <h1 class="text-5xl font-bold tracking-tight text-warm-950 mb-2">{tag}</h1>
+      <p class="text-warm-500 font-light">{bookmarks.length} bookmark{bookmarks.length !== 1 ? 's' : ''}</p>
     </div>
-  </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {bookmarks.map(b => (
-      <BookmarkCard
-        slug={b.slug}
-        title={b.data.title}
-        description={b.data.description}
-        tags={b.data.tags}
-        screenshot={b.data.screenshot}
-        url={b.data.url}
-        savedAt={b.data.savedAt}
-      />
-    ))}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {bookmarks.map(b => (
+        <BookmarkCard
+          slug={b.slug}
+          title={b.data.title}
+          description={b.data.description}
+          tags={b.data.tags}
+          screenshot={b.data.screenshot}
+          url={b.data.url}
+          savedAt={b.data.savedAt}
+        />
+      ))}
+    </div>
+
   </div>
 </BaseLayout>

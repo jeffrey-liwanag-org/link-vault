@@ -11,22 +11,18 @@ const tagCounts = bookmarks.reduce<Record<string, number>>((acc, b) => {
 const tags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
 ---
 <BaseLayout title="Tags">
+  <div class="max-w-3xl mx-auto px-6">
 
-  <div class="mb-10">
-    <div class="flex items-center gap-4 mb-2">
-      <div class="w-12 h-12 bg-sky-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-200/50">
-        <iconify-icon icon="lucide:tag" class="text-2xl"></iconify-icon>
-      </div>
-      <div>
-        <h1 class="text-3xl font-black tracking-tight text-slate-900">Tags</h1>
-        <p class="text-slate-400 font-bold text-sm">{tags.length} tags · {bookmarks.length} bookmarks</p>
+    <div class="mb-10 reveal">
+      <h1 class="text-5xl font-bold tracking-tight text-warm-950 mb-2">Tags</h1>
+      <p class="text-warm-500 font-light">{tags.length} tags · {bookmarks.length} bookmarks</p>
+    </div>
+
+    <div class="bg-white rounded-4xl p-8 border border-stone-100 shadow-soft reveal">
+      <div class="flex flex-wrap gap-3">
+        {tags.map(([tag, count]) => <TagChip tag={tag} count={count} />)}
       </div>
     </div>
-  </div>
 
-  <div class="bg-white border border-slate-100 rounded-6xl p-8 shadow-sm">
-    <div class="flex flex-wrap gap-3">
-      {tags.map(([tag, count]) => <TagChip tag={tag} count={count} />)}
-    </div>
   </div>
 </BaseLayout>

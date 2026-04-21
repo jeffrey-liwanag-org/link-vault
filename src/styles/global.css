@@ -4,47 +4,43 @@
 
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #FDFCF8;
+    color: #292524;
+    font-family: 'Outfit', sans-serif;
   }
 }
 
 @layer utilities {
-  /* Hero gradient text */
-  .text-gradient-space {
-    background: linear-gradient(to bottom, white 0%, #38495a 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  /* Grain overlay */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 300px 300px;
   }
 
-  /* Subtle dot grid for light pages */
-  .bg-grid {
-    background-image: radial-gradient(circle, #cbd5e1 1.2px, transparent 1.2px);
-    background-size: 50px 50px;
+  /* Reveal on scroll — initial hidden state */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  }
+  .reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
   }
 
-  /* Glassmorphism nav */
-  .glass {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  /* Hide scrollbar but keep scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
-
-  /* Shine sweep on cards */
-  .shine {
-    position: relative;
-    overflow: hidden;
-  }
-  .shine::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
-    transform: rotate(45deg);
-    animation: shine 3s infinite;
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

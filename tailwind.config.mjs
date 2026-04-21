@@ -4,15 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        space: {
-          deepest: '#090A0F',
-          deep: '#0d1117',
-          mid: '#1B2735',
-          steel: '#38495a',
+        cream: '#FDFCF8',
+        sage: '#E8EFE8',
+        lavender: '#EFEDF4',
+        coral: '#FFB7B2',
+        warm: {
+          950: '#292524',
+          500: '#78716C',
         },
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        sans: ['Outfit', 'sans-serif'],
+        cursive: ['"Reenie Beanie"', 'cursive'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       borderRadius: {
@@ -21,19 +24,27 @@ export default {
         '6xl': '3rem',
       },
       keyframes: {
-        animStar: {
-          from: { transform: 'translateY(0px)' },
-          to: { transform: 'translateY(-2000px)' },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
-        shine: {
-          '0%': { left: '-100%' },
-          '100%': { left: '100%' },
+        'float-alt': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(10px)' },
+        },
+        reveal: {
+          '0%': { opacity: '0', transform: 'translateY(30px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
       animation: {
-        'star-slow': 'animStar 50s linear infinite',
-        'star-mid': 'animStar 100s linear infinite',
-        'star-fast': 'animStar 150s linear infinite',
+        float: 'float 6s ease-in-out infinite',
+        'float-alt': 'float-alt 8s ease-in-out infinite',
+        reveal: 'reveal 0.8s ease-out forwards',
+      },
+      boxShadow: {
+        soft: '0 4px 20px -2px rgba(0,0,0,0.05)',
+        card: '0 8px 32px -4px rgba(0,0,0,0.06)',
       },
     },
   },

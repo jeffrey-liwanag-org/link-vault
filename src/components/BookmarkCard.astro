@@ -14,46 +14,33 @@ const dateStr = savedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'sh
 ---
 <a
   href={`/link-vault/bookmarks/${slug}`}
-  class="group block bg-white border border-slate-100 rounded-5xl p-7 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+  class="group block bg-white rounded-3xl p-6 border border-stone-100 shadow-soft hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 reveal"
 >
+  <!-- Timestamp -->
+  <p class="text-sm text-stone-400 mb-4">{dateStr}</p>
+
   {screenshot && (
-    <div class="aspect-video overflow-hidden bg-slate-50 rounded-4xl mb-5 border border-slate-100">
-      <img
-        src={screenshot}
-        alt={title}
-        class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
-        loading="lazy"
-      />
+    <div class="aspect-video overflow-hidden bg-stone-50 rounded-2xl mb-4">
+      <img src={screenshot} alt={title} class="w-full h-full object-cover" loading="lazy" />
     </div>
   )}
 
-  <!-- Domain chip -->
-  <div class="flex items-center gap-1.5 mb-3">
-    <div class="w-5 h-5 bg-sky-100 rounded-md flex items-center justify-center">
-      <iconify-icon icon="lucide:link" class="text-sky-500 text-xs"></iconify-icon>
-    </div>
-    <span class="font-mono text-[11px] text-slate-400 font-bold">{domain}</span>
-  </div>
-
-  <h2 class="font-black text-slate-900 text-base leading-snug mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+  <h2 class="text-stone-800 text-lg font-semibold leading-snug mb-2 line-clamp-2 group-hover:text-coral transition-colors duration-200">
     {title}
   </h2>
-  <p class="text-slate-500 text-sm leading-relaxed line-clamp-3 mb-4 font-medium">
+
+  <p class="text-stone-400 text-sm leading-relaxed line-clamp-2 mb-5 font-light">
     {description}
   </p>
 
-  <div class="flex flex-wrap gap-1.5 mb-4">
-    {tags.map(tag => (
-      <span class="font-mono text-[10px] px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 font-bold">
-        {tag}
-      </span>
-    ))}
-  </div>
-
-  <div class="flex items-center justify-between pt-4 border-t border-slate-50">
-    <span class="font-mono text-[10px] text-slate-300 font-bold">{dateStr}</span>
-    <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-      Open <iconify-icon icon="lucide:arrow-right" class="text-xs"></iconify-icon>
-    </span>
+  <div class="flex items-end justify-between gap-2">
+    <div class="flex flex-wrap gap-1.5">
+      {tags.slice(0, 3).map(tag => (
+        <span class="text-xs px-2.5 py-1 rounded-full bg-stone-100 text-stone-500 font-medium">
+          {tag}
+        </span>
+      ))}
+    </div>
+    <span class="text-xs text-stone-300 font-mono flex-shrink-0">{domain}</span>
   </div>
 </a>

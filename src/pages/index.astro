@@ -1,37 +1,74 @@
 ---
-import HeroLayout from '../layouts/HeroLayout.astro';
-import { ParallaxStarsBackground } from '../components/ParallaxStarsBackground';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
 const bookmarks = await getCollection('bookmarks');
 const recent = bookmarks
   .sort((a, b) => b.data.savedAt.getTime() - a.data.savedAt.getTime())
-  .slice(0, 3);
+  .slice(0, 8);
 ---
-<HeroLayout>
-  <ParallaxStarsBackground
-    client:load
-    title="LINK\nVAULT"
-    speed={0.5}
-  >
-    <div class="flex flex-col items-center gap-4">
-      <p class="text-space-steel text-sm tracking-widest uppercase">
-        {bookmarks.length} bookmark{bookmarks.length !== 1 ? 's' : ''} saved
+<BaseLayout>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-20">
+
+    <!-- Background blobs -->
+    <div class="absolute top-[-10%] left-[-5%] w-[480px] h-[480px] rounded-full bg-[#FFE4E1] opacity-60 blur-[90px] animate-float pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-5%] w-[380px] h-[380px] rounded-full bg-[#E6E6FA] opacity-60 blur-[90px] animate-float-alt pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-2xl mx-auto reveal">
+      <p class="text-sm font-medium text-warm-500 tracking-wide uppercase mb-6">
+        {bookmarks.length} links collected
       </p>
-      <div class="flex gap-4">
+
+      <h1 class="text-[68px] sm:text-[80px] font-bold tracking-tight leading-[1.0] text-warm-950 mb-6">
+        Your links,<br />
+        <span class="font-cursive text-[82px] sm:text-[96px] text-coral leading-[1.1]">remembered.</span>
+      </h1>
+
+      <p class="text-warm-500 text-lg sm:text-xl max-w-md mx-auto mb-10 leading-relaxed font-light">
+        A quiet place for the links that matter — tagged, described, always findable.
+      </p>
+
+      <div class="flex items-center justify-center gap-3 flex-wrap">
         <a
           href="/link-vault/bookmarks"
-          class="px-6 py-2 border border-white/30 text-white hover:bg-white hover:text-space-deepest transition-colors rounded-full uppercase tracking-widest text-xs"
+          class="px-8 py-3.5 rounded-full bg-coral text-white font-semibold text-sm shadow-[0_4px_24px_-2px_rgba(255,183,178,0.55)] hover:scale-[1.03] transition-transform"
         >
-          Browse All
+          Browse all
         </a>
         <a
           href="/link-vault/tags"
-          class="px-6 py-2 border border-space-steel/40 text-space-steel hover:border-white/30 hover:text-white transition-colors rounded-full uppercase tracking-widest text-xs"
+          class="px-8 py-3.5 rounded-full bg-white text-warm-950 font-semibold text-sm border border-stone-200 hover:border-stone-300 transition-colors shadow-soft"
         >
-          Browse Tags
+          Browse by tag
         </a>
       </div>
     </div>
-  </ParallaxStarsBackground>
-</HeroLayout>
+  </section>
+
+  <!-- Recent saves horizontal scroll -->
+  <section class="px-6 pb-24">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-2xl font-semibold text-warm-950 mb-5 reveal">Recently saved</h2>
+
+      <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+        {recent.map((b) => {
+          const dateStr = b.data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+          return (
+            <a
+              href={`/link-vault/bookmarks/${b.slug}`}
+              class="group flex-none w-72 h-40 bg-white rounded-3xl p-6 snap-start border border-stone-100 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col justify-between"
+            >
+              <span class="text-sm text-stone-400">{dateStr}</span>
+              <p class="text-stone-800 text-[18px] font-semibold leading-snug group-hover:text-coral transition-colors line-clamp-2">
+                {b.data.title}
+              </p>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

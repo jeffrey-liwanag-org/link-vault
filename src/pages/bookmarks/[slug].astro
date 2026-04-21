@@ -14,59 +14,52 @@ const domain = new URL(data.url).hostname.replace('www.', '');
 const dateStr = data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
 ---
 <BaseLayout title={data.title}>
-  <div class="max-w-2xl mx-auto">
+  <div class="max-w-2xl mx-auto px-6">
 
-    <!-- Back link -->
-    <a href="/link-vault/bookmarks" class="inline-flex items-center gap-2 font-bold text-sm text-slate-400 hover:text-emerald-600 transition-colors mb-8">
-      <iconify-icon icon="lucide:arrow-left"></iconify-icon>
-      All bookmarks
+    <a href="/link-vault/bookmarks" class="inline-flex items-center gap-1.5 text-sm text-warm-500 hover:text-warm-950 transition-colors mb-8 font-medium reveal">
+      ← All bookmarks
     </a>
 
-    <!-- Card -->
-    <div class="bg-white border border-slate-100 rounded-6xl p-8 shadow-sm">
+    <article class="bg-white rounded-4xl p-8 border border-stone-100 shadow-soft reveal">
 
       {data.screenshot && (
-        <div class="rounded-5xl overflow-hidden border border-slate-100 mb-8">
+        <div class="rounded-3xl overflow-hidden border border-stone-100 mb-8">
           <img src={data.screenshot} alt={data.title} class="w-full" />
         </div>
       )}
 
-      <!-- Domain -->
-      <div class="flex items-center gap-2 mb-4">
-        <div class="w-7 h-7 bg-sky-100 rounded-lg flex items-center justify-center">
-          <iconify-icon icon="lucide:link" class="text-sky-500 text-sm"></iconify-icon>
-        </div>
-        <span class="font-mono text-xs text-slate-400 font-bold">{domain}</span>
+      <!-- Date & domain -->
+      <div class="flex items-center justify-between mb-6">
+        <span class="text-sm text-stone-400">{dateStr}</span>
+        <span class="text-sm text-stone-300 font-mono">{domain}</span>
       </div>
 
-      <h1 class="text-2xl font-black text-slate-900 leading-snug mb-4">{data.title}</h1>
-      <p class="text-slate-500 leading-relaxed font-medium mb-6">{data.description}</p>
+      <h1 class="text-3xl font-bold text-warm-950 leading-snug mb-4">{data.title}</h1>
+      <p class="text-warm-500 leading-relaxed font-light mb-6 text-[17px]">{data.description}</p>
 
       <!-- Tags -->
-      <div class="flex flex-wrap gap-2 mb-6">
+      <div class="flex flex-wrap gap-2 mb-8">
         {data.tags.map(tag => <TagChip tag={tag} />)}
       </div>
 
-      <!-- Note -->
       {data.note && (
-        <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6">
-          <p class="text-sm text-amber-700 font-medium italic">{data.note}</p>
+        <div class="bg-sage rounded-3xl p-5 mb-8 border border-stone-100">
+          <p class="text-sm text-warm-500 italic font-light">{data.note}</p>
         </div>
       )}
 
-      <!-- Footer row -->
-      <div class="flex items-center justify-between pt-6 border-t border-slate-100">
-        <span class="font-mono text-xs text-slate-300 font-bold">{dateStr}</span>
+      <!-- Open link CTA -->
+      <div class="pt-6 border-t border-stone-100">
         <a
           href={data.url}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-emerald-200/50 hover:scale-105"
+          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-warm-950 text-white font-semibold text-sm hover:opacity-80 transition-opacity"
         >
-          Open link
-          <iconify-icon icon="lucide:external-link"></iconify-icon>
+          Open link →
         </a>
       </div>
-    </div>
+
+    </article>
   </div>
 </BaseLayout>
