@@ -7,19 +7,20 @@ import slugify from 'slugify';
 import fs from 'fs/promises';
 import path from 'path';
 
-const ROOT = path.resolve(import.meta.dirname, '..');
-const BOOKMARKS_DIR = path.join(ROOT, 'src/content/bookmarks');
-const SCREENSHOTS_DIR = path.join(ROOT, 'public/screenshots');
+export const ROOT = path.resolve(import.meta.dirname, '..');
+export const BOOKMARKS_DIR = path.join(ROOT, 'src/content/bookmarks');
+export const SCREENSHOTS_DIR = path.join(ROOT, 'public/screenshots');
 
-async function fetchPage(url: string) {
+export async function fetchPage(url: string) {
   const res = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; LinkVault/1.0)' },
+    signal: AbortSignal.timeout(15_000),
   });
   if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
   return res.text();
 }
 
-async function extractContent(html: string, url: string) {
+export async function extractContent(html: string, url: string) {
   const dom = new JSDOM(html, { url });
   const reader = new Readability(dom.window.document);
   const article = reader.parse();
@@ -29,7 +30,7 @@ async function extractContent(html: string, url: string) {
   };
 }
 
-async function takeScreenshot(url: string, outputPath: string) {
+export async function takeScreenshot(url: string, outputPath: string) {
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
@@ -42,7 +43,7 @@ async function takeScreenshot(url: string, outputPath: string) {
     .toFile(outputPath);
 }
 
-async function generateAIMetadata(title: string, text: string, url: string) {
+export async function generateAIMetadata(title: string, text: string, url: string) {
   const client = new Anthropic();
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -64,7 +65,7 @@ ${text}`,
   return JSON.parse(raw) as { summary: string; tags: string[] };
 }
 
-async function makeSlug(title: string): Promise<string> {
+export async function makeSlug(title: string): Promise<string> {
   const base = slugify(title, { lower: true, strict: true }).slice(0, 60);
   let slug = base;
   let n = 2;
@@ -74,9 +75,9 @@ async function makeSlug(title: string): Promise<string> {
   return slug;
 }
 
-async function writeMarkdown(slug: string, data: {
+export async function writeMarkdown(slug: string, data: {
   url: string; title: string; description: string;
-  tags: string[]; screenshotPath?: string;
+  tags: string[]; screenshotPath?: string; source?: string;
 }) {
   const date = new Date().toISOString().split('T')[0];
   const screenshot = data.screenshotPath
@@ -88,16 +89,17 @@ async function writeMarkdown(slug: string, data: {
     `url: ${data.url}`,
     `title: "${data.title.replace(/"/g, '\\"')}"`,
     `description: "${data.description.replace(/"/g, '\\"')}"`,
-    `tags: [${data.tags.map(t => t).join(', ')}]`,
+    `tags: [${data.tags.join(', ')}]`,
     screenshot ? `screenshot: ${screenshot}` : null,
     `savedAt: ${date}`,
-    `source: bookmarklet`,
+    `source: ${data.source ?? 'bookmarklet'}`,
     '---',
   ].filter(Boolean).join('\n');
 
   await fs.writeFile(path.join(BOOKMARKS_DIR, `${slug}.md`), frontmatter + '\n');
-  console.log(`✓ Written: src/content/bookmarks/${slug}.md`);
 }
+
+// ── CLI entry point ──────────────────────────────────────────────────────────
 
 async function main() {
   const url = process.argv[2];
@@ -125,12 +127,10 @@ async function main() {
 
   const slug = await makeSlug(title);
   const finalScreenshotPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);
-  if (tmpSlug !== slug) {
-    await fs.rename(screenshotPath, finalScreenshotPath);
-  }
+  if (tmpSlug !== slug) await fs.rename(screenshotPath, finalScreenshotPath);
 
   await writeMarkdown(slug, { url, title, description: summary, tags, screenshotPath: finalScreenshotPath });
-  console.log(`\nDone. Slug: ${slug}`);
+  console.log(`✓ Done — src/content/bookmarks/${slug}.md`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
