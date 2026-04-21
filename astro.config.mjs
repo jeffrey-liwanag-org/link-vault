@@ -3,7 +3,7 @@ import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
-  site: 'https://jeffrey-liwanag.github.io',
+  site: 'https://jeffrey-liwanag-org.github.io',
   base: '/link-vault',
   integrations: [react(), tailwind()],
   output: 'static',

@@ -30,10 +30,10 @@ Go to **Settings → Pages**:
 
 ### 4. Install the bookmarklet
 
-Create a new browser bookmark and paste this as the URL (replace `jeffrey-liwanag`):
+Create a new browser bookmark and paste this as the URL (replace `jeffrey-liwanag-org`):
 
 ```
-javascript:(function(){const u=encodeURIComponent(location.href);const t=encodeURIComponent(document.title);window.open(`https://github.com/jeffrey-liwanag/link-vault/issues/new?title=Bookmark:%20${t}&body=${u}&labels=bookmark`,'_blank')})();
+javascript:(function(){const u=encodeURIComponent(location.href);const t=encodeURIComponent(document.title);window.open(`https://github.com/jeffrey-liwanag-org/link-vault/issues/new?title=Bookmark:%20${t}&body=${u}&labels=bookmark`,'_blank')})();
 ```
 
 **Mobile (iOS):** Save any page as a bookmark, then edit the URL and replace with the script above.
