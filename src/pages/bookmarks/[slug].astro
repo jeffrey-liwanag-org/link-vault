@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TagChip from '../../components/TagChip.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const bookmarks = await getCollection('bookmarks');
+  return bookmarks.map(b => ({ params: { slug: b.slug }, props: { bookmark: b } }));
+}
+
+const { bookmark } = Astro.props;
+const { data } = bookmark;
+const domain = new URL(data.url).hostname.replace('www.', '');
+const dateStr = data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+---
+<BaseLayout title={data.title}>
+  <div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+      <a href="/link-vault/bookmarks" class="font-mono text-xs text-space-steel hover:text-accent transition-colors">
+        ← all bookmarks
+      </a>
+    </div>
+
+    {data.screenshot && (
+      <div class="rounded-lg overflow-hidden border border-space-steel/20 mb-6">
+        <img src={data.screenshot} alt={data.title} class="w-full" />
+      </div>
+    )}
+
+    <p class="font-mono text-xs text-space-steel mb-2">{domain}</p>
+    <h1 class="text-xl font-semibold mb-4 leading-snug">{data.title}</h1>
+    <p class="text-space-steel leading-relaxed mb-6">{data.description}</p>
+
+    <div class="flex flex-wrap gap-2 mb-6">
+      {data.tags.map(tag => <TagChip tag={tag} />)}
+    </div>
+
+    {data.note && (
+      <div class="border-l-2 border-accent/40 pl-4 mb-6">
+        <p class="text-sm text-space-steel italic">{data.note}</p>
+      </div>
+    )}
+
+    <div class="flex items-center justify-between pt-4 border-t border-space-steel/20">
+      <p class="font-mono text-xs text-space-steel/50">{dateStr}</p>
+      <a
+        href={data.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font-mono text-xs px-4 py-2 border border-accent/40 text-accent rounded-full hover:bg-accent/10 transition-colors"
+      >
+        Open URL ↗
+      </a>
+    </div>
+  </div>
+</BaseLayout>

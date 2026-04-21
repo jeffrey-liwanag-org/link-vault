@@ -1,0 +1,37 @@
+---
+import HeroLayout from '../layouts/HeroLayout.astro';
+import { ParallaxStarsBackground } from '../components/ParallaxStarsBackground';
+import { getCollection } from 'astro:content';
+
+const bookmarks = await getCollection('bookmarks');
+const recent = bookmarks
+  .sort((a, b) => b.data.savedAt.getTime() - a.data.savedAt.getTime())
+  .slice(0, 3);
+---
+<HeroLayout>
+  <ParallaxStarsBackground
+    client:load
+    title="LINK\nVAULT"
+    speed={0.5}
+  >
+    <div class="flex flex-col items-center gap-4">
+      <p class="text-space-steel text-sm tracking-widest uppercase">
+        {bookmarks.length} bookmark{bookmarks.length !== 1 ? 's' : ''} saved
+      </p>
+      <div class="flex gap-4">
+        <a
+          href="/link-vault/bookmarks"
+          class="px-6 py-2 border border-white/30 text-white hover:bg-white hover:text-space-deepest transition-colors rounded-full uppercase tracking-widest text-xs"
+        >
+          Browse All
+        </a>
+        <a
+          href="/link-vault/tags"
+          class="px-6 py-2 border border-space-steel/40 text-space-steel hover:border-white/30 hover:text-white transition-colors rounded-full uppercase tracking-widest text-xs"
+        >
+          Browse Tags
+        </a>
+      </div>
+    </div>
+  </ParallaxStarsBackground>
+</HeroLayout>

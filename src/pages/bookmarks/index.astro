@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BookmarkCard from '../../components/BookmarkCard.astro';
+import TagChip from '../../components/TagChip.astro';
+import { getCollection } from 'astro:content';
+
+const bookmarks = await getCollection('bookmarks');
+const sorted = bookmarks.sort((a, b) => b.data.savedAt.getTime() - a.data.savedAt.getTime());
+
+const tagCounts = sorted.reduce<Record<string, number>>((acc, b) => {
+  b.data.tags.forEach(t => { acc[t] = (acc[t] ?? 0) + 1; });
+  return acc;
+}, {});
+const allTags = Object.keys(tagCounts).sort();
+---
+<BaseLayout title="All Bookmarks">
+  <div class="mb-8">
+    <h1 class="text-2xl font-light tracking-widest uppercase mb-2">All Bookmarks</h1>
+    <p class="text-space-steel text-sm">{sorted.length} saved</p>
+  </div>
+
+  <div class="flex flex-wrap gap-2 mb-8">
+    {allTags.map(tag => <TagChip tag={tag} count={tagCounts[tag]} />)}
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {sorted.map(b => (
+      <BookmarkCard
+        slug={b.slug}
+        title={b.data.title}
+        description={b.data.description}
+        tags={b.data.tags}
+        screenshot={b.data.screenshot}
+        url={b.data.url}
+        savedAt={b.data.savedAt}
+      />
+    ))}
+  </div>
+</BaseLayout>

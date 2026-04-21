@@ -1,0 +1,19 @@
+---
+interface Props {
+  tag: string;
+  count?: number;
+  active?: boolean;
+}
+const { tag, count, active = false } = Astro.props;
+---
+<a
+  href={`/link-vault/tags/${tag}`}
+  class:list={[
+    'font-mono text-xs px-3 py-1 rounded-full border transition-colors',
+    active
+      ? 'border-accent text-accent bg-accent/10'
+      : 'border-space-steel/40 text-space-steel hover:border-accent/50 hover:text-accent/80',
+  ]}
+>
+  {tag}{count !== undefined && <span class="ml-1 opacity-50">({count})</span>}
+</a>

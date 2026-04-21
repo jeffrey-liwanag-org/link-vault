@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BookmarkCard from '../../components/BookmarkCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const bookmarks = await getCollection('bookmarks');
+  const tags = [...new Set(bookmarks.flatMap(b => b.data.tags))];
+  return tags.map(tag => ({
+    params: { tag },
+    props: {
+      bookmarks: bookmarks
+        .filter(b => b.data.tags.includes(tag))
+        .sort((a, b) => b.data.savedAt.getTime() - a.data.savedAt.getTime()),
+    },
+  }));
+}
+
+const { tag } = Astro.params;
+const { bookmarks } = Astro.props;
+---
+<BaseLayout title={`#${tag}`}>
+  <div class="mb-8">
+    <a href="/link-vault/tags" class="font-mono text-xs text-space-steel hover:text-accent transition-colors">
+      ← all tags
+    </a>
+    <h1 class="text-2xl font-light tracking-widest uppercase mt-4 mb-2">#{tag}</h1>
+    <p class="text-space-steel text-sm">{bookmarks.length} bookmark{bookmarks.length !== 1 ? 's' : ''}</p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {bookmarks.map(b => (
+      <BookmarkCard
+        slug={b.slug}
+        title={b.data.title}
+        description={b.data.description}
+        tags={b.data.tags}
+        screenshot={b.data.screenshot}
+        url={b.data.url}
+        savedAt={b.data.savedAt}
+      />
+    ))}
+  </div>
+</BaseLayout>

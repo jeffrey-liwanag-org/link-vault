@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-space-deepest text-white font-sans;
+  }
+}
+
+@layer utilities {
+  .text-gradient-space {
+    background: linear-gradient(to bottom, white 0%, #38495a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
