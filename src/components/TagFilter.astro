@@ -51,14 +51,20 @@ const { allTags, tagCounts } = Astro.props;
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...selectedTags]));
   }
 
+  function syncDisplay(card) {
+    card.style.display =
+      (card.dataset.searchHidden === '1' || card.dataset.tagHidden === '1') ? 'none' : '';
+  }
+
   function filterCards() {
     document.querySelectorAll('[data-tags]').forEach(card => {
       if (selectedTags.size === 0) {
-        card.style.display = '';
+        card.dataset.tagHidden = '';
       } else {
         const tags = JSON.parse(card.dataset.tags || '[]');
-        card.style.display = tags.some(t => selectedTags.has(t)) ? '' : 'none';
+        card.dataset.tagHidden = tags.some(t => selectedTags.has(t)) ? '' : '1';
       }
+      syncDisplay(card);
     });
   }
 

@@ -1,74 +1,40 @@
 ---
 ---
 <div class="relative w-full" id="search-wrapper">
-  <div class="relative">
-    <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-    </svg>
-    <input
-      id="search-input"
-      type="search"
-      placeholder="Search bookmarks..."
-      autocomplete="off"
-      class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white border border-ink-200 text-sm text-ink-950 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-400 transition-all"
-    />
-  </div>
-  <div
-    id="search-results"
-    class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl border border-ink-200 overflow-y-auto z-[200]"
-    style="box-shadow:0 8px 24px rgba(0,0,0,0.10);max-height:360px;"
-  ></div>
+  <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+  </svg>
+  <input
+    id="search-input"
+    type="search"
+    placeholder="Search bookmarks..."
+    autocomplete="off"
+    class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white border border-ink-200 text-sm text-ink-950 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-400 transition-all"
+  />
 </div>
 
 <script>
-  const base = (import.meta.env.BASE_URL as string).replace(/\/?$/, '/');
   const input = document.getElementById('search-input') as HTMLInputElement;
-  const results = document.getElementById('search-results') as HTMLDivElement;
 
-  let pagefind: any = null;
-
-  async function initPagefind() {
-    if (pagefind) return;
-    try {
-      const load = new Function('url', 'return import(url)');
-      const pf = await load(`${base}pagefind/pagefind.js`);
-      await pf.init();
-      pagefind = pf;
-    } catch {
-      // not available in dev
-    }
+  function syncDisplay(card: HTMLElement) {
+    card.style.display =
+      (card.dataset.searchHidden === '1' || card.dataset.tagHidden === '1') ? 'none' : '';
   }
 
-  input.addEventListener('focus', initPagefind);
+  function filterCards(q: string) {
+    const query = q.toLowerCase().trim();
+    document.querySelectorAll<HTMLElement>('[data-tags]').forEach(card => {
+      const title = (card.dataset.title ?? '').toLowerCase();
+      const domain = (card.dataset.domain ?? '').toLowerCase();
+      const tags = (card.dataset.tags ?? '').toLowerCase();
+      card.dataset.searchHidden = (!query || title.includes(query) || domain.includes(query) || tags.includes(query)) ? '' : '1';
+      syncDisplay(card);
+    });
+  }
 
   let debounce: ReturnType<typeof setTimeout>;
   input.addEventListener('input', () => {
     clearTimeout(debounce);
-    debounce = setTimeout(async () => {
-      const q = input.value.trim();
-      if (!q) { results.classList.add('hidden'); results.innerHTML = ''; return; }
-      await initPagefind();
-      if (!pagefind) return;
-      const res = await pagefind.search(q);
-      if (!res.results.length) {
-        results.innerHTML = '<p class="px-4 py-3 text-sm text-ink-400">No results found.</p>';
-        results.classList.remove('hidden');
-        return;
-      }
-      const top = await Promise.all(res.results.slice(0, 6).map((r: any) => r.data()));
-      results.innerHTML = top.map((r: any) => `
-        <a href="${r.url}" class="flex flex-col px-4 py-3 hover:bg-ink-50 transition-colors border-b border-ink-100 last:border-0">
-          <span class="text-sm font-medium text-ink-950 mb-0.5">${r.meta?.title ?? ''}</span>
-          <span class="text-xs text-ink-500 leading-relaxed line-clamp-2">${r.excerpt ?? ''}</span>
-        </a>
-      `).join('');
-      results.classList.remove('hidden');
-    }, 200);
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!document.getElementById('search-wrapper')?.contains(e.target as Node)) {
-      results.classList.add('hidden');
-    }
+    debounce = setTimeout(() => filterCards(input.value), 150);
   });
 </script>
