@@ -15,52 +15,50 @@ const dateStr = data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month
 const heroImage = data.screenshot || data.coverImage;
 ---
 <BaseLayout title={data.title}>
-  <div class="max-w-2xl mx-auto px-6">
+  <div class="max-w-2xl mx-auto px-6 py-8">
 
-    <a href="/link-vault/bookmarks" class="inline-flex items-center gap-1.5 text-sm text-warm-500 hover:text-warm-950 transition-colors mb-8 font-medium reveal">
+    <a href="/link-vault/bookmarks" class="inline-flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-950 transition-colors mb-8 font-medium reveal">
       ← All bookmarks
     </a>
 
-    <article class="bg-white rounded-4xl p-8 border border-stone-100 shadow-soft reveal" data-pagefind-body>
+    <article class="bg-white rounded-xl border border-ink-200 overflow-hidden reveal" style="box-shadow:0 1px 3px rgba(0,0,0,0.06);" data-pagefind-body>
 
       {heroImage && (
-        <div class="rounded-3xl overflow-hidden border border-stone-100 mb-8">
+        <div class="border-b border-ink-100">
           <img src={heroImage} alt={data.title} class="w-full" />
         </div>
       )}
 
-      <!-- Date & domain -->
-      <div class="flex items-center justify-between mb-6">
-        <span class="text-sm text-stone-400">{dateStr}</span>
-        <span class="text-sm text-stone-300 font-mono">{domain}</span>
-      </div>
-
-      <h1 class="text-3xl font-bold text-warm-950 leading-snug mb-4">{data.title}</h1>
-      <p class="text-warm-500 leading-relaxed font-light mb-6 text-[17px]">{data.description}</p>
-
-      <!-- Tags -->
-      <div class="flex flex-wrap gap-2 mb-8">
-        {data.tags.map(tag => <TagChip tag={tag} />)}
-      </div>
-
-      {data.note && (
-        <div class="bg-sage rounded-3xl p-5 mb-8 border border-stone-100">
-          <p class="text-sm text-warm-500 italic font-light">{data.note}</p>
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-5">
+          <span class="text-sm text-ink-400">{dateStr}</span>
+          <span class="text-sm text-ink-400 font-mono">{domain}</span>
         </div>
-      )}
 
-      <!-- Open link CTA -->
-      <div class="pt-6 border-t border-stone-100">
-        <a
-          href={data.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-warm-950 text-white font-semibold text-sm hover:opacity-80 transition-opacity"
-        >
-          Open link →
-        </a>
+        <h1 class="text-2xl font-bold text-ink-950 leading-snug mb-3">{data.title}</h1>
+        <p class="text-ink-500 leading-relaxed font-light mb-6 text-base">{data.description}</p>
+
+        <div class="flex flex-wrap gap-2 mb-8">
+          {data.tags.map(tag => <TagChip tag={tag} />)}
+        </div>
+
+        {data.note && (
+          <div class="bg-ink-50 rounded-lg p-4 mb-8 border border-ink-100">
+            <p class="text-sm text-ink-500 italic font-light">{data.note}</p>
+          </div>
+        )}
+
+        <div class="pt-6 border-t border-ink-100">
+          <a
+            href={data.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-500 transition-colors"
+          >
+            Open link →
+          </a>
+        </div>
       </div>
-
     </article>
   </div>
 </BaseLayout>
