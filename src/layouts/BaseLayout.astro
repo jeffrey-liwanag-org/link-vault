@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Toast from '../components/Toast.astro';
 interface Props {
   title?: string;
 }
@@ -61,5 +62,6 @@ const { title = 'Link Vault' } = Astro.props;
       );
       document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     </script>
+    <Toast />
   </body>
 </html>

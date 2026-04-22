@@ -36,5 +36,9 @@ export default {
       },
     },
   },
+  safelist: [
+    'bg-ink-950',
+    'border-ink-700',
+  ],
   plugins: [],
 };
