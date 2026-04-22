@@ -1,8 +1,8 @@
 ---
 url: https://traderwaves.com/app/charts
 title: "traderwaves.com"
-description: "TraderWaves is a web-based charting and trading platform that provides real-time market data visualization and analysis tools. The application appears to be designed for tracking and analyzing financial markets through interactive charts."
-tags: [unsorted, trading, charting, financial-markets, data-visualization, market-analysis]
+description: "TraderWaves appears to be a trading platform or charting application for financial markets. The page provides access to interactive charts and trading tools for analyzing market data."
+tags: [unsorted, trading, charting, financial-markets, data-visualization, market-analysis, financial-charts, trading-platform]
 savedAt: 2026-04-17
 source: browser-import
 ---
