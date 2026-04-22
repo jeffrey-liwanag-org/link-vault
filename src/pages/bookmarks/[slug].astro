@@ -1,14 +1,18 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TagChip from '../../components/TagChip.astro';
+import TagEditor from '../../components/TagEditor.astro';
 import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
   const bookmarks = await getCollection('bookmarks');
-  return bookmarks.map(b => ({ params: { slug: b.slug }, props: { bookmark: b } }));
+  const tagSet = new Set<string>();
+  bookmarks.forEach(b => b.data.tags.forEach(t => tagSet.add(t)));
+  const allTags = Array.from(tagSet).sort();
+  return bookmarks.map(b => ({ params: { slug: b.slug }, props: { bookmark: b, allTags } }));
 }
 
-const { bookmark } = Astro.props;
+const { bookmark, allTags } = Astro.props;
 const { data } = bookmark;
 const domain = new URL(data.url).hostname.replace('www.', '');
 const dateStr = data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -38,8 +42,12 @@ const heroImage = data.screenshot || data.coverImage;
         <h1 class="text-2xl font-bold text-ink-950 leading-snug mb-3">{data.title}</h1>
         <p class="text-ink-500 leading-relaxed font-light mb-6 text-base">{data.description}</p>
 
-        <div class="flex flex-wrap gap-2 mb-8">
+        <div class="flex flex-wrap gap-2 mb-3">
           {data.tags.map(tag => <TagChip tag={tag} />)}
+        </div>
+
+        <div class="mb-5">
+          <TagEditor slug={bookmark.slug} initialTags={data.tags} allTags={allTags} />
         </div>
 
         {data.note && (

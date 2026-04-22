@@ -1,0 +1,308 @@
+---
+interface Props {
+  slug: string;
+  initialTags: string[];
+  allTags: string[];
+}
+
+const { slug, initialTags, allTags } = Astro.props;
+---
+
+<div
+  id="tag-editor-root"
+  data-slug={slug}
+  data-initial-tags={JSON.stringify(initialTags)}
+  data-all-tags={JSON.stringify(allTags)}
+>
+  <!-- Edit tags button -->
+  <button
+    id="tag-editor-open-btn"
+    type="button"
+    disabled
+    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-ink-300 text-ink-500 hover:border-ink-400 hover:text-ink-700 transition-colors opacity-50 cursor-not-allowed"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+    Edit tags
+  </button>
+
+  <!-- Modal backdrop -->
+  <div
+    id="tag-editor-backdrop"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:240; align-items:center; justify-content:center;"
+  >
+    <!-- Modal card -->
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-xl" style="max-height:90vh;overflow-y:auto;">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-base font-semibold text-ink-950">Edit tags</h2>
+        <button
+          id="tag-editor-close-btn"
+          type="button"
+          class="text-ink-400 hover:text-ink-700 transition-colors p-1 rounded"
+          aria-label="Close"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Current tag pills -->
+      <div id="tag-editor-pills" class="flex flex-wrap gap-2 mb-4 min-h-[2rem]"></div>
+
+      <!-- Add tag input + dropdown -->
+      <div class="relative mb-5">
+        <input
+          id="tag-editor-input"
+          type="text"
+          placeholder="Add tag…"
+          autocomplete="off"
+          class="w-full px-3 py-2 text-sm border border-ink-200 rounded-lg text-ink-950 placeholder:text-ink-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 transition-colors"
+        />
+        <ul
+          id="tag-editor-dropdown"
+          style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:white; border:1px solid #e5e7eb; border-radius:8px; z-index:250; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);"
+        ></ul>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3 justify-end pt-4 border-t border-ink-100">
+        <button
+          id="tag-editor-cancel-btn"
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-ink-500 hover:text-ink-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          id="tag-editor-save-btn"
+          type="button"
+          disabled
+          class="px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { getToken, getFile, putFile } from '../lib/github';
+  import { parseFrontmatter, serializeFrontmatter } from '../lib/frontmatter';
+
+  const root = document.getElementById('tag-editor-root')!;
+  const slug = root.dataset.slug!;
+  const initialTags: string[] = JSON.parse(root.dataset.initialTags!);
+  const allTags: string[] = JSON.parse(root.dataset.allTags!);
+
+  const openBtn = document.getElementById('tag-editor-open-btn') as HTMLButtonElement;
+  const closeBtn = document.getElementById('tag-editor-close-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('tag-editor-cancel-btn') as HTMLButtonElement;
+  const saveBtn = document.getElementById('tag-editor-save-btn') as HTMLButtonElement;
+  const backdrop = document.getElementById('tag-editor-backdrop') as HTMLDivElement;
+  const pillsContainer = document.getElementById('tag-editor-pills') as HTMLDivElement;
+  const input = document.getElementById('tag-editor-input') as HTMLInputElement;
+  const dropdown = document.getElementById('tag-editor-dropdown') as HTMLUListElement;
+
+  // Working state — a Set for O(1) dedup checks
+  let currentTags: string[] = [...initialTags];
+
+  // ── Token gating ──────────────────────────────────────────────────────────
+
+  function updateButtonState() {
+    const hasToken = Boolean(getToken());
+    openBtn.disabled = !hasToken;
+    if (hasToken) {
+      openBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      openBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  updateButtonState();
+
+  document.addEventListener('pat-changed', () => updateButtonState());
+
+  // ── Slugify ───────────────────────────────────────────────────────────────
+
+  function slugify(text: string): string {
+    return text
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  // ── Pills rendering ───────────────────────────────────────────────────────
+
+  function renderPills() {
+    pillsContainer.innerHTML = '';
+    for (const tag of currentTags) {
+      const pill = document.createElement('span');
+      pill.className = 'inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 font-medium';
+
+      const label = document.createElement('span');
+      label.textContent = tag;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.setAttribute('aria-label', `Remove tag ${tag}`);
+      removeBtn.className = 'ml-0.5 text-indigo-400 hover:text-indigo-700 transition-colors leading-none';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.addEventListener('click', () => {
+        currentTags = currentTags.filter(t => t !== tag);
+        renderPills();
+        updateSaveButton();
+      });
+
+      pill.appendChild(label);
+      pill.appendChild(removeBtn);
+      pillsContainer.appendChild(pill);
+    }
+  }
+
+  // ── Save button state ─────────────────────────────────────────────────────
+
+  function tagsEqual(a: string[], b: string[]): boolean {
+    if (a.length !== b.length) return false;
+    return a.every((v, i) => v === b[i]);
+  }
+
+  function updateSaveButton() {
+    saveBtn.disabled = tagsEqual(currentTags, initialTags);
+  }
+
+  // ── Dropdown ──────────────────────────────────────────────────────────────
+
+  function renderDropdown(query: string) {
+    const currentSet = new Set(currentTags);
+    const matches = allTags
+      .filter(t => !currentSet.has(t) && t.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 8);
+
+    if (!query || matches.length === 0) {
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    dropdown.innerHTML = '';
+    for (const tag of matches) {
+      const li = document.createElement('li');
+      li.textContent = tag;
+      li.className = 'px-3 py-2 text-sm text-ink-700 cursor-pointer hover:bg-indigo-50 hover:text-indigo-600';
+      li.addEventListener('mousedown', (e) => {
+        // mousedown fires before blur — prevent input from losing focus first
+        e.preventDefault();
+        addTag(tag);
+      });
+      dropdown.appendChild(li);
+    }
+    dropdown.style.display = 'block';
+  }
+
+  function addTag(tag: string) {
+    const trimmed = tag.trim();
+    if (!trimmed || currentTags.includes(trimmed)) return;
+    currentTags = [...currentTags, trimmed];
+    renderPills();
+    updateSaveButton();
+    input.value = '';
+    dropdown.style.display = 'none';
+    dropdown.innerHTML = '';
+  }
+
+  input.addEventListener('input', () => {
+    renderDropdown(input.value);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (!query) return;
+
+      const currentSet = new Set(currentTags);
+      const matches = allTags.filter(
+        t => !currentSet.has(t) && t.toLowerCase().includes(query.toLowerCase())
+      );
+
+      // Exact match (case-insensitive) → use existing tag, else slugify new
+      const exactMatch = matches.find(t => t.toLowerCase() === query.toLowerCase());
+      addTag(exactMatch ?? slugify(query));
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    // Small delay so mousedown on dropdown item fires first
+    setTimeout(() => {
+      dropdown.style.display = 'none';
+      dropdown.innerHTML = '';
+    }, 150);
+  });
+
+  // ── Modal open/close ──────────────────────────────────────────────────────
+
+  function openModal() {
+    currentTags = [...initialTags];
+    renderPills();
+    updateSaveButton();
+    input.value = '';
+    dropdown.style.display = 'none';
+    backdrop.style.display = 'flex';
+    // Trap focus in input
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function closeModal() {
+    backdrop.style.display = 'none';
+    currentTags = [...initialTags];
+    input.value = '';
+    dropdown.style.display = 'none';
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+
+  // Close on backdrop click (outside the card)
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeModal();
+  });
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+
+  saveBtn.addEventListener('click', async () => {
+    saveBtn.disabled = true;
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+      const filePath = `src/content/bookmarks/${slug}.md`;
+      const { content, sha } = await getFile(filePath);
+      const { data, body } = parseFrontmatter(content);
+      data.tags = [...currentTags];
+      const updated = serializeFrontmatter(data, body);
+      await putFile(filePath, updated, sha, `tags: update ${slug}`);
+
+      window.toast?.('Tags saved. Site rebuilding (~1 min).', 'success');
+      closeModal();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      window.toast?.(`Failed to save tags: ${message}`, 'error');
+      saveBtn.textContent = originalText;
+      updateSaveButton();
+    }
+  });
+</script>
