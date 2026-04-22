@@ -1,4 +1,4 @@
-// Browser-only module — do not import from SSR contexts.
+// Pure-JS module: safe to import from both browser and Node contexts.
 
 export interface Frontmatter {
   url: string;
@@ -48,6 +48,7 @@ export function parseFrontmatter(md: string): { data: Frontmatter; body: string 
         break;
       case 'tags': {
         const inner = value.slice(1, -1); // strip [ and ]
+        // Tags are kebab-case slugs (a-z, 0-9, hyphens) — ", " can never appear within a tag.
         data.tags = inner.split(', ').filter(t => t.length > 0);
         break;
       }
