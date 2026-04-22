@@ -26,7 +26,7 @@
     document.querySelectorAll<HTMLElement>('[data-tags]').forEach(card => {
       const title = (card.dataset.title ?? '').toLowerCase();
       const domain = (card.dataset.domain ?? '').toLowerCase();
-      const tags = (card.dataset.tags ?? '').toLowerCase();
+      const tags = (JSON.parse(card.dataset.tags ?? '[]') as string[]).join(' ').toLowerCase();
       card.dataset.searchHidden = (!query || title.includes(query) || domain.includes(query) || tags.includes(query)) ? '' : '1';
       syncDisplay(card);
     });

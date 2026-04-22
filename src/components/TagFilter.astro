@@ -86,11 +86,11 @@ const { allTags, tagCounts } = Astro.props;
     const pillsRow = document.getElementById('active-pills-row');
     if (!pillsRow) return;
     if (selectedTags.size === 0) {
-      pillsRow.classList.add('hidden');
+      pillsRow.style.display = 'none';
       pillsRow.innerHTML = '';
       return;
     }
-    pillsRow.classList.remove('hidden');
+    pillsRow.style.display = 'flex';
     pillsRow.innerHTML = [...selectedTags].map(tag => `
       <button data-pill="${tag}"
         style="font-size:11px;padding:4px 12px;border-radius:6px;background:#EEF2FF;color:#4F6BED;font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"
