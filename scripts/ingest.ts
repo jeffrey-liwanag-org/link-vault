@@ -61,7 +61,9 @@ ${text}`,
     }],
   });
 
-  const raw = (message.content[0] as { text: string }).text.trim();
+  const raw = (message.content[0] as { text: string }).text.trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/\s*```$/, '');
   return JSON.parse(raw) as { summary: string; tags: string[] };
 }
 

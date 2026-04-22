@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "ingest": "tsx scripts/ingest.ts",
-    "import-browser": "tsx scripts/import-browser.ts"
+    "import-browser": "tsx scripts/import-browser.ts",
+    "enrich": "tsx scripts/enrich-browser-imports.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
