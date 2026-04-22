@@ -5,6 +5,7 @@ import SearchBar from '../../components/SearchBar.astro';
 import ViewModeToggle from '../../components/ViewModeToggle.astro';
 import SortToggle from '../../components/SortToggle.astro';
 import TagFilter from '../../components/TagFilter.astro';
+import AddBookmarkButton from '../../components/AddBookmarkButton.astro';
 import { getCollection } from 'astro:content';
 
 const bookmarks = await getCollection('bookmarks');
@@ -33,6 +34,7 @@ const allTags = Object.keys(tagCounts).sort();
       <ViewModeToggle />
       <SortToggle />
       <TagFilter allTags={allTags} tagCounts={tagCounts} />
+      <AddBookmarkButton />
     </div>
 
     <!-- Active filter pills (managed by TagFilter JS) -->
