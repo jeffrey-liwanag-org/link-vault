@@ -1,0 +1,59 @@
+const OWNER = 'jeffrey-liwanag-org';
+const REPO = 'link-vault';
+const API = 'https://api.github.com';
+const PAT_KEY = 'linkVaultPAT';
+
+export const getToken = () => localStorage.getItem(PAT_KEY);
+export const setToken = (t: string) => localStorage.setItem(PAT_KEY, t);
+export const clearToken = () => localStorage.removeItem(PAT_KEY);
+
+function headers() {
+  const t = getToken();
+  if (!t) throw new Error('NO_TOKEN');
+  return {
+    Authorization: `Bearer ${t}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+}
+
+export async function getFile(path: string): Promise<{ content: string; sha: string }> {
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, { headers: headers() });
+  if (!res.ok) throw new Error(`GET ${path}: ${res.status}`);
+  const { content, sha } = await res.json();
+  // GitHub returns base64 with \n every 60 chars; decode to UTF-8 string
+  return {
+    content: decodeURIComponent(escape(atob(content.replace(/\n/g, '')))),
+    sha,
+  };
+}
+
+export async function putFile(path: string, content: string, sha: string, message: string) {
+  const body = {
+    message,
+    content: btoa(unescape(encodeURIComponent(content))),
+    sha,
+  };
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { ...headers(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`PUT ${path}: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+export async function deleteFile(path: string, sha: string, message: string) {
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
+    method: 'DELETE',
+    headers: { ...headers(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, sha }),
+  });
+  if (!res.ok && res.status !== 404) throw new Error(`DELETE ${path}: ${res.status}`);
+}
+
+export async function validateToken(): Promise<boolean> {
+  if (!getToken()) return false;
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}`, { headers: headers() });
+  return res.ok;
+}
