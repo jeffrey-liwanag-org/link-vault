@@ -83,6 +83,8 @@ const { slug, initialTitle } = Astro.props;
   // ── State transitions ────────────────────────────────────────────────────────
 
   function enterEdit() {
+    saveBtn.textContent = 'Save';
+    saveBtn.disabled = false;
     input.value = currentTitle;
     displayEl.style.display = 'none';
     editEl.style.display = 'flex';
