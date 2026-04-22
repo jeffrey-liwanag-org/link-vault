@@ -73,3 +73,17 @@ export async function validateToken(candidateToken?: string): Promise<boolean> {
   });
   return res.ok;
 }
+
+export async function createIssue(
+  title: string,
+  body: string,
+  labels: string[]
+): Promise<{ number: number; html_url: string }> {
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}/issues`, {
+    method: 'POST',
+    headers: { ...headers(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, body, labels }),
+  });
+  if (!res.ok) throw new Error(`POST /issues: ${res.status}`);
+  return res.json();
+}

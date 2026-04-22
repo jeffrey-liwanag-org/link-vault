@@ -2,7 +2,9 @@
 ---
 <button
   id="add-bookmark-btn"
-  class="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-500 transition-colors whitespace-nowrap"
+  type="button"
+  disabled
+  class="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-500 transition-colors whitespace-nowrap opacity-50 cursor-not-allowed"
 >
   <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
@@ -11,14 +13,39 @@
 </button>
 
 <script>
-  document.getElementById('add-bookmark-btn')?.addEventListener('click', () => {
+  import { getToken, createIssue } from '../lib/github';
+
+  const btn = document.getElementById('add-bookmark-btn') as HTMLButtonElement;
+
+  function updateAddState() {
+    const hasToken = Boolean(getToken());
+    btn.disabled = !hasToken;
+    btn.classList.toggle('opacity-50', !hasToken);
+    btn.classList.toggle('cursor-not-allowed', !hasToken);
+  }
+  updateAddState();
+  document.addEventListener('pat-changed', () => updateAddState());
+
+  btn.addEventListener('click', async () => {
+    if (!getToken()) {
+      window.toast?.('Set a GitHub token in Settings first.', 'error');
+      document.getElementById('pat-gear-btn')?.click();
+      return;
+    }
+
     const url = prompt('Bookmark URL:');
     if (!url || !url.trim()) return;
     const trimmed = url.trim();
-    const title = encodeURIComponent(`Bookmark: ${trimmed}`);
-    const body = encodeURIComponent(trimmed);
-    const issueUrl = `https://github.com/jeffrey-liwanag-org/link-vault/issues/new?title=${title}&body=${body}&labels=bookmark`;
-    const newWin = window.open(issueUrl, '_blank');
-    if (newWin) window.toast?.('Issue opened. Bookmark appears after enrichment (~1 min).', 'info');
+
+    btn.disabled = true;
+    try {
+      await createIssue(`Bookmark: ${trimmed}`, trimmed, ['bookmark']);
+      window.toast?.('Bookmark submitted. Appears after enrichment (~1 min).', 'info');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      window.toast?.(`Failed to submit: ${message}`, 'error');
+    } finally {
+      updateAddState();
+    }
   });
 </script>

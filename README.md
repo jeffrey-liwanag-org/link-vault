@@ -85,7 +85,9 @@ The site supports in-browser edit/delete/tag operations from the deployed site. 
 2. Choose **Fine-grained token**
 3. **Resource owner:** `jeffrey-liwanag-org`
 4. **Repository access:** Only select `link-vault`
-5. **Permissions → Repository → Contents:** Read and write
+5. **Permissions → Repository:**
+   - **Contents:** Read and write
+   - **Issues:** Read and write
 6. **Expiration:** 90 days (you'll need to refresh it periodically)
 7. Generate and copy the token
 
