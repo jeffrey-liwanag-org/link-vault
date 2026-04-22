@@ -14,41 +14,38 @@ const { title = 'Link Vault' } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/link-vault/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Reenie+Beanie&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-cream text-warm-950 font-sans min-h-screen">
+  <body class="bg-ink-50 text-ink-950 font-sans min-h-screen">
 
-    <!-- Grain texture -->
-    <div class="grain" aria-hidden="true"></div>
-
-    <!-- Floating pill nav -->
-    <header class="fixed top-4 left-0 right-0 z-[100] flex justify-center px-4" data-pagefind-ignore>
-      <nav class="w-full max-w-xl flex items-center justify-between px-5 py-3 rounded-full bg-white/70 backdrop-blur-[20px] border border-white/60 shadow-soft">
-        <a href="/link-vault" class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-full bg-coral flex items-center justify-center flex-shrink-0">
+    <!-- Nav -->
+    <header class="fixed top-0 left-0 right-0 z-[100] bg-ink-950 border-b border-ink-700" data-pagefind-ignore>
+      <nav class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <a href="/link-vault" class="flex items-center gap-2.5">
+          <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
             <div class="w-2 h-2 rounded-full bg-white"></div>
           </div>
-          <span class="font-semibold text-sm text-warm-950">Link Vault</span>
+          <span class="font-bold text-sm text-white tracking-tight">Link Vault</span>
         </a>
 
         <div class="flex items-center gap-1">
           <a href="/link-vault/bookmarks"
-             class="px-3 py-1.5 text-sm font-medium text-warm-500 hover:text-warm-950 hover:bg-stone-100/60 rounded-full transition-all">
+             class="px-3 py-1.5 text-sm font-medium text-ink-400 hover:text-white hover:bg-ink-700 rounded-lg transition-all">
             Bookmarks
           </a>
           <a href="/link-vault/tags"
-             class="px-3 py-1.5 text-sm font-medium text-warm-500 hover:text-warm-950 hover:bg-stone-100/60 rounded-full transition-all">
+             class="px-3 py-1.5 text-sm font-medium text-ink-400 hover:text-white hover:bg-ink-700 rounded-lg transition-all">
             Tags
           </a>
           <a href="/link-vault"
-             class="ml-1 px-4 py-1.5 rounded-full bg-warm-950 text-white text-sm font-medium hover:opacity-80 transition-opacity">
+             class="ml-2 px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition-colors">
             Home
           </a>
         </div>
       </nav>
     </header>
 
-    <main class="pt-24 pb-20">
+    <main class="pt-14 pb-20">
       <slot />
     </main>
 
