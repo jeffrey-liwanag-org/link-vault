@@ -1,0 +1,146 @@
+---
+interface Props {
+  slug: string;
+  initialTitle: string;
+}
+
+const { slug, initialTitle } = Astro.props;
+---
+
+<div id="title-editor-root" data-slug={slug} data-initial-title={initialTitle}>
+  <!-- Display state -->
+  <div id="title-editor-display" class="flex items-center mb-3">
+    <h1 id="title-editor-h1" class="text-2xl font-bold text-ink-950 leading-snug">{initialTitle}</h1>
+    <button
+      id="title-editor-pencil-btn"
+      type="button"
+      disabled
+      aria-label="Edit title"
+      class="ml-2 text-ink-300 hover:text-ink-600 transition-colors opacity-50 cursor-not-allowed"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Edit state (hidden by default) -->
+  <div id="title-editor-edit" style="display:none;" class="flex items-center gap-2 mb-3">
+    <input
+      id="title-editor-input"
+      type="text"
+      class="w-full text-2xl font-bold text-ink-950 leading-snug border-b-2 border-indigo-600 outline-none bg-transparent"
+    />
+    <button
+      id="title-editor-save-btn"
+      type="button"
+      class="px-3 py-1 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 whitespace-nowrap"
+    >
+      Save
+    </button>
+    <button
+      id="title-editor-cancel-btn"
+      type="button"
+      class="px-2 py-1 text-sm text-ink-400 hover:text-ink-950"
+    >
+      ×
+    </button>
+  </div>
+</div>
+
+<script>
+  import { getToken, getFile, putFile } from '../lib/github';
+  import { parseFrontmatter, serializeFrontmatter } from '../lib/frontmatter';
+
+  const root = document.getElementById('title-editor-root')!;
+  const slug = root.dataset.slug!;
+  let currentTitle = root.dataset.initialTitle!;
+
+  const displayEl = document.getElementById('title-editor-display') as HTMLDivElement;
+  const editEl = document.getElementById('title-editor-edit') as HTMLDivElement;
+  const h1 = document.getElementById('title-editor-h1') as HTMLHeadingElement;
+  const pencilBtn = document.getElementById('title-editor-pencil-btn') as HTMLButtonElement;
+  const input = document.getElementById('title-editor-input') as HTMLInputElement;
+  const saveBtn = document.getElementById('title-editor-save-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('title-editor-cancel-btn') as HTMLButtonElement;
+
+  // ── Token gating ────────────────────────────────────────────────────────────
+
+  function updatePencilState() {
+    const hasToken = Boolean(getToken());
+    pencilBtn.disabled = !hasToken;
+    if (hasToken) {
+      pencilBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      pencilBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  updatePencilState();
+  document.addEventListener('pat-changed', () => updatePencilState());
+
+  // ── State transitions ────────────────────────────────────────────────────────
+
+  function enterEdit() {
+    input.value = currentTitle;
+    displayEl.style.display = 'none';
+    editEl.style.display = 'flex';
+    input.focus();
+    input.select();
+  }
+
+  function exitEdit() {
+    editEl.style.display = 'none';
+    displayEl.style.display = 'flex';
+  }
+
+  pencilBtn.addEventListener('click', enterEdit);
+  cancelBtn.addEventListener('click', exitEdit);
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      doSave();
+    } else if (e.key === 'Escape') {
+      exitEdit();
+    }
+  });
+
+  // ── Save ────────────────────────────────────────────────────────────────────
+
+  saveBtn.addEventListener('click', doSave);
+
+  async function doSave() {
+    const newTitle = input.value.trim();
+
+    // No-op cases
+    if (!newTitle || newTitle === currentTitle) {
+      exitEdit();
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+      const filePath = `src/content/bookmarks/${slug}.md`;
+      const { content, sha } = await getFile(filePath);
+      const { data, body } = parseFrontmatter(content);
+      data.title = newTitle;
+      const updated = serializeFrontmatter(data, body);
+      await putFile(filePath, updated, sha, `title: update ${slug}`);
+
+      // Optimistic update
+      currentTitle = newTitle;
+      h1.textContent = newTitle;
+      window.toast?.('Title saved. Site rebuilding (~1 min).', 'success');
+      exitEdit();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      window.toast?.(`Failed to save title: ${message}`, 'error');
+      saveBtn.textContent = 'Save';
+      saveBtn.disabled = false;
+    }
+  }
+</script>
