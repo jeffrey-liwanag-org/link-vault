@@ -1,10 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BookmarkCard from '../../components/BookmarkCard.astro';
-import TagChip from '../../components/TagChip.astro';
 import SearchBar from '../../components/SearchBar.astro';
 import ViewModeToggle from '../../components/ViewModeToggle.astro';
 import SortToggle from '../../components/SortToggle.astro';
+import TagFilter from '../../components/TagFilter.astro';
 import { getCollection } from 'astro:content';
 
 const bookmarks = await getCollection('bookmarks');
@@ -17,29 +17,28 @@ const tagCounts = sorted.reduce<Record<string, number>>((acc, b) => {
 const allTags = Object.keys(tagCounts).sort();
 ---
 <BaseLayout title="All Bookmarks">
-  <div class="max-w-6xl mx-auto px-6" data-pagefind-ignore>
+  <div class="max-w-6xl mx-auto px-6 py-8" data-pagefind-ignore>
 
     <!-- Header -->
-    <div class="mb-8 reveal">
-      <h1 class="text-5xl font-bold tracking-tight text-warm-950 mb-2">All bookmarks</h1>
-      <p class="text-warm-500 font-light">{sorted.length} saved</p>
-    </div>
-
-    <!-- Search -->
     <div class="mb-6 reveal">
-      <SearchBar />
+      <h1 class="text-3xl font-bold tracking-tight text-ink-950 mb-1">All bookmarks</h1>
+      <p class="text-sm text-ink-400">{sorted.length} saved</p>
     </div>
 
-    <!-- Controls: view + sort + tag filters -->
-    <div class="flex flex-wrap items-center gap-3 mb-8 reveal">
+    <!-- Controls row -->
+    <div class="flex flex-wrap gap-2 items-center mb-3 reveal">
+      <div class="flex-1 min-w-48">
+        <SearchBar />
+      </div>
       <ViewModeToggle />
       <SortToggle />
-      <div class="flex flex-wrap gap-2 flex-1">
-        {allTags.map(tag => <TagChip tag={tag} count={tagCounts[tag]} />)}
-      </div>
+      <TagFilter allTags={allTags} tagCounts={tagCounts} />
     </div>
 
-    <!-- Bookmarks container -->
+    <!-- Active filter pills (managed by TagFilter JS) -->
+    <div id="active-pills-row" class="hidden flex-wrap gap-2 items-center mb-4"></div>
+
+    <!-- Bookmarks -->
     <div id="bookmarks-container" class="bookmarks-container" data-view="grid">
       {sorted.map(b => (
         <BookmarkCard
@@ -63,15 +62,15 @@ const allTags = Object.keys(tagCounts).sort();
   const viewBtns = document.querySelectorAll<HTMLButtonElement>('[data-view-btn]');
   const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
 
-  // ── View mode ──────────────────────────────────────────────────────────────
+  // ── View mode ──────────────────────────────────────────────────────────
   function setView(view: string) {
     container.dataset.view = view;
     localStorage.setItem('linkVaultView', view);
     viewBtns.forEach(btn => {
       const active = btn.dataset.viewBtn === view;
-      btn.classList.toggle('bg-coral', active);
+      btn.classList.toggle('bg-ink-950', active);
       btn.classList.toggle('text-white', active);
-      btn.classList.toggle('text-stone-400', !active);
+      btn.classList.toggle('text-ink-400', !active);
     });
   }
 
@@ -79,7 +78,7 @@ const allTags = Object.keys(tagCounts).sort();
   setView(savedView);
   viewBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.viewBtn!)));
 
-  // ── Sort ───────────────────────────────────────────────────────────────────
+  // ── Sort ───────────────────────────────────────────────────────────────
   const cards = [...container.querySelectorAll<HTMLElement>('[data-saved-at]')];
 
   function sortCards(order: string) {
