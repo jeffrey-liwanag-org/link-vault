@@ -61,8 +61,15 @@ export async function deleteFile(path: string, sha: string, message: string) {
   if (!res.ok && res.status !== 404) throw new Error(`DELETE ${path}: ${res.status}`);
 }
 
-export async function validateToken(): Promise<boolean> {
-  if (!getToken()) return false;
-  const res = await fetch(`${API}/repos/${OWNER}/${REPO}`, { headers: headers() });
+export async function validateToken(candidateToken?: string): Promise<boolean> {
+  const token = candidateToken ?? getToken();
+  if (!token) return false;
+  const res = await fetch(`${API}/repos/${OWNER}/${REPO}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
   return res.ok;
 }

@@ -217,22 +217,11 @@
     validateResult.textContent = '';
     validateResult.className = 'text-xs font-medium';
 
-    // Temporarily store token to use validateToken()
-    const previous = getToken();
-    setToken(val);
-
     let ok = false;
     try {
-      ok = await validateToken();
+      ok = await validateToken(val);
     } catch {
       ok = false;
-    }
-
-    // Restore previous token if validation fails so we don't overwrite a working one
-    if (!ok && previous !== null) {
-      setToken(previous);
-    } else if (!ok) {
-      clearToken();
     }
 
     validateBtn.disabled = false;
