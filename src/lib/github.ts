@@ -1,3 +1,4 @@
+// Browser-only module — do not import from SSR contexts.
 const OWNER = 'jeffrey-liwanag-org';
 const REPO = 'link-vault';
 const API = 'https://api.github.com';
@@ -22,18 +23,26 @@ export async function getFile(path: string): Promise<{ content: string; sha: str
   if (!res.ok) throw new Error(`GET ${path}: ${res.status}`);
   const { content, sha } = await res.json();
   // GitHub returns base64 with \n every 60 chars; decode to UTF-8 string
-  return {
-    content: decodeURIComponent(escape(atob(content.replace(/\n/g, '')))),
-    sha,
-  };
+  const raw = atob(content.replace(/\n/g, ''));
+  const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+  return { content: new TextDecoder().decode(bytes), sha };
 }
 
-export async function putFile(path: string, content: string, sha: string, message: string) {
-  const body = {
+export async function putFile(
+  path: string,
+  content: string,
+  sha: string | undefined,
+  message: string
+): Promise<{ content: { sha: string } }> {
+  const bytes = new TextEncoder().encode(content);
+  let binary = '';
+  bytes.forEach(b => (binary += String.fromCharCode(b)));
+  const encoded = btoa(binary);
+  const body: Record<string, string> = {
     message,
-    content: btoa(unescape(encodeURIComponent(content))),
-    sha,
+    content: encoded,
   };
+  if (sha) body.sha = sha;
   const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, {
     method: 'PUT',
     headers: { ...headers(), 'Content-Type': 'application/json' },
