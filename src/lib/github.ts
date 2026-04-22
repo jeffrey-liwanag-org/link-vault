@@ -48,7 +48,7 @@ export async function putFile(
     headers: { ...headers(), 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PUT ${path}: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`PUT ${path}: ${res.status}`);
   return res.json();
 }
 

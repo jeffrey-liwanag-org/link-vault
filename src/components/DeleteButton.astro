@@ -128,11 +128,11 @@ const { slug, title, hasScreenshot } = Astro.props;
         }
       }
 
-      window.toast('Deleted. Site rebuilding (~1 min).', 'success');
+      window.toast?.('Deleted. Site rebuilding (~1 min).', 'success');
       setTimeout(() => { window.location.href = '/link-vault/bookmarks/'; }, 800);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      window.toast(`Failed to delete: ${message}`, 'error');
+      window.toast?.(`Failed to delete: ${message}`, 'error');
       confirmBtn.textContent = 'Delete';
       confirmBtn.disabled = false;
     }

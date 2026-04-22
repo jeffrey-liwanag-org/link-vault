@@ -18,7 +18,7 @@
     const title = encodeURIComponent(`Bookmark: ${trimmed}`);
     const body = encodeURIComponent(trimmed);
     const issueUrl = `https://github.com/jeffrey-liwanag-org/link-vault/issues/new?title=${title}&body=${body}&labels=bookmark`;
-    window.open(issueUrl, '_blank');
-    window.toast('Issue opened. Bookmark appears after enrichment (~1 min).', 'info');
+    const newWin = window.open(issueUrl, '_blank');
+    if (newWin) window.toast?.('Issue opened. Bookmark appears after enrichment (~1 min).', 'info');
   });
 </script>
