@@ -1,0 +1,181 @@
+---
+interface Props {
+  allTags: string[];
+  tagCounts: Record<string, number>;
+}
+const { allTags, tagCounts } = Astro.props;
+---
+
+<div class="relative" id="tag-filter-root">
+  <button
+    id="filter-btn"
+    class="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-ink-200 rounded-lg text-ink-700 hover:border-ink-300 transition-colors font-medium whitespace-nowrap"
+  >
+    <svg class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M2 4h12v1.5L9.5 10v4.5l-3-1.5V10L2 5.5V4z"/>
+    </svg>
+    <span id="filter-label">Filter</span>
+  </button>
+
+  <div
+    id="filter-popover"
+    class="hidden absolute top-full left-0 mt-1.5 w-72 bg-white border border-ink-200 rounded-xl z-50 p-4"
+    style="box-shadow:0 8px 24px rgba(0,0,0,0.10);"
+  >
+    <div class="text-xs font-bold text-ink-500 uppercase tracking-wider mb-3">Filter by tag</div>
+    <input
+      id="tag-search"
+      type="text"
+      placeholder="Search tags…"
+      class="w-full text-sm border border-ink-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-400 transition-all"
+    />
+    <div id="tag-list" class="flex flex-col gap-0.5 overflow-y-auto" style="max-height:200px;"></div>
+    <div id="tag-hint" class="hidden text-xs text-ink-400 mt-2 pt-2 border-t border-ink-100"></div>
+  </div>
+</div>
+
+<script define:vars={{ allTags, tagCounts }}>
+  const STORAGE_KEY = 'linkVaultTags';
+
+  let selectedTags = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+  let searchQuery = '';
+  let popoverOpen = false;
+
+  const filterBtn = document.getElementById('filter-btn');
+  const filterLabel = document.getElementById('filter-label');
+  const popover = document.getElementById('filter-popover');
+  const tagSearch = document.getElementById('tag-search');
+  const tagList = document.getElementById('tag-list');
+  const tagHint = document.getElementById('tag-hint');
+  const pillsRow = document.getElementById('active-pills-row');
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...selectedTags]));
+  }
+
+  function filterCards() {
+    document.querySelectorAll('[data-tags]').forEach(card => {
+      if (selectedTags.size === 0) {
+        (card as HTMLElement).style.display = '';
+      } else {
+        const tags = JSON.parse((card as HTMLElement).dataset.tags || '[]');
+        (card as HTMLElement).style.display = tags.some((t: string) => selectedTags.has(t)) ? '' : 'none';
+      }
+    });
+  }
+
+  function updateBtn() {
+    if (selectedTags.size > 0) {
+      filterBtn.style.background = '#4F6BED';
+      filterBtn.style.color = '#fff';
+      filterBtn.style.borderColor = '#4F6BED';
+      filterLabel.textContent = `Filter · ${selectedTags.size}`;
+    } else {
+      filterBtn.style.background = '';
+      filterBtn.style.color = '';
+      filterBtn.style.borderColor = '';
+      filterLabel.textContent = 'Filter';
+    }
+  }
+
+  function renderPills() {
+    if (!pillsRow) return;
+    if (selectedTags.size === 0) {
+      pillsRow.classList.add('hidden');
+      pillsRow.innerHTML = '';
+      return;
+    }
+    pillsRow.classList.remove('hidden');
+    pillsRow.innerHTML = [...selectedTags].map(tag => `
+      <button data-pill="${tag}"
+        style="font-size:11px;padding:4px 12px;border-radius:6px;background:#EEF2FF;color:#4F6BED;font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;"
+      >${tag} <span style="opacity:0.5;">×</span></button>
+    `).join('') + `
+      <button id="clear-all-btn" style="font-size:12px;color:#9CA3AF;background:none;border:none;cursor:pointer;padding:4px 8px;">Clear all</button>
+    `;
+    pillsRow.querySelectorAll('[data-pill]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedTags.delete((btn as HTMLElement).dataset.pill!);
+        save(); update();
+      });
+    });
+    document.getElementById('clear-all-btn')?.addEventListener('click', () => {
+      selectedTags.clear();
+      save(); update();
+    });
+  }
+
+  function renderTagList() {
+    const q = searchQuery.toLowerCase();
+    const filtered = (allTags as string[]).filter(t => t.toLowerCase().includes(q));
+    filtered.sort((a, b) => {
+      const asel = selectedTags.has(a), bsel = selectedTags.has(b);
+      if (asel !== bsel) return asel ? -1 : 1;
+      return ((tagCounts as Record<string,number>)[b] || 0) - ((tagCounts as Record<string,number>)[a] || 0);
+    });
+    const visible = filtered.slice(0, 50);
+    tagList.innerHTML = visible.map(tag => {
+      const sel = selectedTags.has(tag);
+      return `<button data-tag="${tag}"
+        style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:6px;border:none;cursor:pointer;text-align:left;width:100%;background:${sel ? '#EEF2FF' : 'transparent'};color:${sel ? '#4F6BED' : '#374151'};">
+        <span style="font-size:12px;font-weight:${sel ? '600' : '400'};">${sel ? '✓ ' : ''}${tag}</span>
+        <span style="font-size:11px;color:#9CA3AF;">${(tagCounts as Record<string,number>)[tag] || 0}</span>
+      </button>`;
+    }).join('');
+    if (filtered.length > 50) {
+      tagHint.textContent = `+${filtered.length - 50} more — type to search`;
+      tagHint.classList.remove('hidden');
+    } else {
+      tagHint.classList.add('hidden');
+    }
+    tagList.querySelectorAll('[data-tag]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tag = (btn as HTMLElement).dataset.tag!;
+        if (selectedTags.has(tag)) selectedTags.delete(tag);
+        else selectedTags.add(tag);
+        save(); update();
+      });
+    });
+  }
+
+  function update() {
+    filterCards();
+    updateBtn();
+    renderPills();
+    renderTagList();
+  }
+
+  filterBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popoverOpen = !popoverOpen;
+    popover.classList.toggle('hidden', !popoverOpen);
+    if (popoverOpen) {
+      tagSearch.value = '';
+      searchQuery = '';
+      renderTagList();
+      setTimeout(() => tagSearch.focus(), 50);
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('tag-filter-root')?.contains(e.target as Node)) {
+      popoverOpen = false;
+      popover.classList.add('hidden');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popoverOpen) {
+      popoverOpen = false;
+      popover.classList.add('hidden');
+    }
+  });
+
+  tagSearch.addEventListener('input', (e) => {
+    searchQuery = (e.target as HTMLInputElement).value;
+    renderTagList();
+  });
+
+  // Init
+  update();
+</script>
