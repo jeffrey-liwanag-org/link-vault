@@ -1,0 +1,276 @@
+---
+---
+
+<!-- Gear button -->
+<div class="relative">
+  <button
+    id="pat-gear-btn"
+    title="GitHub Token Settings"
+    class="relative px-3 py-1.5 text-sm font-medium text-ink-400 hover:text-white hover:bg-ink-700 rounded-lg transition-all flex items-center"
+    aria-label="Open GitHub token settings"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+    <!-- Green dot indicator — shown when PAT is set -->
+    <span
+      id="pat-active-dot"
+      style="display:none;"
+      class="absolute top-1 right-1 w-2 h-2 rounded-full bg-green-500 border border-ink-950"
+    ></span>
+  </button>
+</div>
+
+<!-- Modal backdrop -->
+<div
+  id="pat-backdrop"
+  style="display:none;"
+  class="fixed inset-0 z-[240] bg-black/60"
+></div>
+
+<!-- Modal -->
+<div
+  id="pat-modal"
+  style="display:none;"
+  class="fixed inset-0 z-[250] flex items-center justify-center p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="pat-modal-title"
+>
+  <div class="bg-white rounded-xl shadow-card max-w-md w-full p-6 relative">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-5">
+      <h2 id="pat-modal-title" class="text-base font-bold text-ink-950">GitHub Token</h2>
+      <button
+        id="pat-close-btn"
+        class="text-ink-400 hover:text-ink-950 transition-colors p-1 rounded-lg hover:bg-ink-100"
+        aria-label="Close"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Token input -->
+    <div class="mb-4">
+      <label for="pat-input" class="block text-xs font-medium text-ink-500 mb-1.5">Personal Access Token</label>
+      <div class="relative">
+        <input
+          id="pat-input"
+          type="password"
+          placeholder="github_pat_..."
+          class="w-full px-3 py-2.5 text-sm font-mono border border-ink-200 rounded-lg bg-ink-50 text-ink-950 placeholder-ink-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent pr-20"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button
+          id="pat-show-btn"
+          type="button"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-ink-400 hover:text-ink-950 px-1.5 py-1 rounded transition-colors"
+        >
+          Show
+        </button>
+      </div>
+    </div>
+
+    <!-- Validate + inline result -->
+    <div class="flex items-center gap-2 mb-4">
+      <button
+        id="pat-validate-btn"
+        type="button"
+        class="px-3 py-1.5 text-sm font-medium border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Validate
+      </button>
+      <span id="pat-validate-result" class="text-xs font-medium"></span>
+    </div>
+
+    <!-- Save button -->
+    <button
+      id="pat-save-btn"
+      type="button"
+      disabled
+      class="w-full px-4 py-2.5 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors mb-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
+    >
+      Save
+    </button>
+
+    <!-- Clear button — only shown when token exists -->
+    <button
+      id="pat-clear-btn"
+      type="button"
+      style="display:none;"
+      class="w-full px-4 py-2.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors mb-4"
+    >
+      Clear token
+    </button>
+
+    <!-- Help text -->
+    <p class="text-xs text-ink-400 leading-relaxed">
+      Create a fine-grained token at
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener" class="text-indigo-600 hover:underline">github.com/settings/personal-access-tokens/new</a>
+      — Resource owner: <span class="font-mono">jeffrey-liwanag-org</span> · Repo: <span class="font-mono">link-vault</span> only · Permission: Contents → Read and write
+    </p>
+  </div>
+</div>
+
+<script>
+  import { getToken, setToken, clearToken, validateToken } from '../lib/github';
+
+  const gearBtn = document.getElementById('pat-gear-btn')!;
+  const activeDot = document.getElementById('pat-active-dot')!;
+  const backdrop = document.getElementById('pat-backdrop')!;
+  const modal = document.getElementById('pat-modal')!;
+  const closeBtn = document.getElementById('pat-close-btn')!;
+  const input = document.getElementById('pat-input') as HTMLInputElement;
+  const showBtn = document.getElementById('pat-show-btn')!;
+  const validateBtn = document.getElementById('pat-validate-btn') as HTMLButtonElement;
+  const validateResult = document.getElementById('pat-validate-result')!;
+  const saveBtn = document.getElementById('pat-save-btn') as HTMLButtonElement;
+  const clearBtn = document.getElementById('pat-clear-btn')!;
+
+  let validatedSuccessfully = false;
+
+  function updateDot() {
+    const hasToken = !!getToken();
+    activeDot.style.display = hasToken ? 'block' : 'none';
+  }
+
+  function openModal() {
+    const existing = getToken();
+    if (existing) {
+      input.value = existing;
+      clearBtn.style.display = 'block';
+    } else {
+      input.value = '';
+      clearBtn.style.display = 'none';
+    }
+    // Reset validation state
+    validatedSuccessfully = false;
+    saveBtn.disabled = true;
+    validateResult.textContent = '';
+    validateResult.className = 'text-xs font-medium';
+
+    backdrop.style.display = 'block';
+    modal.style.display = 'flex';
+    input.focus();
+  }
+
+  function closeModal() {
+    backdrop.style.display = 'none';
+    modal.style.display = 'none';
+  }
+
+  function dispatchPatChanged() {
+    document.dispatchEvent(new CustomEvent('pat-changed', { detail: { hasToken: !!getToken() } }));
+  }
+
+  // Gear button
+  gearBtn.addEventListener('click', openModal);
+
+  // Close button
+  closeBtn.addEventListener('click', closeModal);
+
+  // Backdrop click
+  backdrop.addEventListener('click', closeModal);
+
+  // Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display === 'flex') {
+      closeModal();
+    }
+  });
+
+  // Show/Hide toggle
+  showBtn.addEventListener('click', () => {
+    if (input.type === 'password') {
+      input.type = 'text';
+      showBtn.textContent = 'Hide';
+    } else {
+      input.type = 'password';
+      showBtn.textContent = 'Show';
+    }
+  });
+
+  // Reset validation when input changes
+  input.addEventListener('input', () => {
+    validatedSuccessfully = false;
+    saveBtn.disabled = true;
+    validateResult.textContent = '';
+    validateResult.className = 'text-xs font-medium';
+  });
+
+  // Validate
+  validateBtn.addEventListener('click', async () => {
+    const val = input.value.trim();
+    if (!val) {
+      validateResult.textContent = '✗ Enter a token first';
+      validateResult.className = 'text-xs font-medium text-red-600';
+      return;
+    }
+
+    validateBtn.disabled = true;
+    validateBtn.textContent = 'Validating…';
+    validateResult.textContent = '';
+    validateResult.className = 'text-xs font-medium';
+
+    // Temporarily store token to use validateToken()
+    const previous = getToken();
+    setToken(val);
+
+    let ok = false;
+    try {
+      ok = await validateToken();
+    } catch {
+      ok = false;
+    }
+
+    // Restore previous token if validation fails so we don't overwrite a working one
+    if (!ok && previous !== null) {
+      setToken(previous);
+    } else if (!ok) {
+      clearToken();
+    }
+
+    validateBtn.disabled = false;
+    validateBtn.textContent = 'Validate';
+
+    if (ok) {
+      validatedSuccessfully = true;
+      saveBtn.disabled = false;
+      validateResult.textContent = '✓ Token works';
+      validateResult.className = 'text-xs font-medium text-green-600';
+    } else {
+      validatedSuccessfully = false;
+      saveBtn.disabled = true;
+      validateResult.textContent = '✗ Invalid or missing permissions';
+      validateResult.className = 'text-xs font-medium text-red-600';
+    }
+  });
+
+  // Save
+  saveBtn.addEventListener('click', () => {
+    const val = input.value.trim();
+    if (!val || !validatedSuccessfully) return;
+    setToken(val);
+    updateDot();
+    dispatchPatChanged();
+    closeModal();
+    window.toast('Token saved.', 'success');
+  });
+
+  // Clear
+  clearBtn.addEventListener('click', () => {
+    clearToken();
+    updateDot();
+    dispatchPatChanged();
+    closeModal();
+    window.toast('Token cleared.', 'info');
+  });
+
+  // Initialize dot on load
+  updateDot();
+</script>

@@ -39,6 +39,13 @@ export default {
   safelist: [
     'bg-ink-950',
     'border-ink-700',
+    'bg-green-500',
+    'border-ink-950',
+    'text-green-600',
+    'text-red-600',
+    'bg-red-50',
+    'border-red-300',
+    'bg-indigo-50',
   ],
   plugins: [],
 };

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Toast from '../components/Toast.astro';
+import PATSettings from '../components/PATSettings.astro';
 interface Props {
   title?: string;
 }
@@ -38,6 +39,7 @@ const { title = 'Link Vault' } = Astro.props;
              class="px-3 py-1.5 text-sm font-medium text-ink-400 hover:text-white hover:bg-ink-700 rounded-lg transition-all">
             Tags
           </a>
+          <PATSettings />
           <a href="/link-vault"
              class="ml-2 px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition-colors">
             Home
