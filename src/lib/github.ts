@@ -20,7 +20,10 @@ function headers() {
 
 export async function getFile(path: string): Promise<{ content: string; sha: string }> {
   const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${path}`, { headers: headers() });
-  if (!res.ok) throw new Error(`GET ${path}: ${res.status}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error('PAT needs "Contents → Read and write" permission');
+    throw new Error(`GET ${path}: ${res.status}`);
+  }
   const { content, sha } = await res.json();
   // GitHub returns base64 with \n every 60 chars; decode to UTF-8 string
   const raw = atob(content.replace(/\n/g, ''));
@@ -48,7 +51,10 @@ export async function putFile(
     headers: { ...headers(), 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PUT ${path}: ${res.status}`);
+  if (!res.ok) {
+    if (res.status === 403) throw new Error('PAT needs "Contents → Read and write" permission');
+    throw new Error(`PUT ${path}: ${res.status}`);
+  }
   return res.json();
 }
 
@@ -58,20 +64,25 @@ export async function deleteFile(path: string, sha: string, message: string) {
     headers: { ...headers(), 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, sha }),
   });
-  if (!res.ok && res.status !== 404) throw new Error(`DELETE ${path}: ${res.status}`);
+  if (!res.ok && res.status !== 404) {
+    if (res.status === 403) throw new Error('PAT needs "Contents → Read and write" permission');
+    throw new Error(`DELETE ${path}: ${res.status}`);
+  }
 }
 
 export async function validateToken(candidateToken?: string): Promise<boolean> {
   const token = candidateToken ?? getToken();
   if (!token) return false;
-  const res = await fetch(`${API}/repos/${OWNER}/${REPO}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-  });
-  return res.ok;
+  const h = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  const repoRes = await fetch(`${API}/repos/${OWNER}/${REPO}`, { headers: h });
+  if (!repoRes.ok) return false;
+  // Also verify contents:read — putFile/getFile will 403 without it
+  const contentsRes = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/src/content/bookmarks`, { headers: h });
+  return contentsRes.ok;
 }
 
 export async function createIssue(

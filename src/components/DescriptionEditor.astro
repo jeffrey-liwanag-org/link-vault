@@ -1,0 +1,147 @@
+---
+interface Props {
+  slug: string;
+  initialDescription: string;
+}
+
+const { slug, initialDescription } = Astro.props;
+---
+
+<div id="desc-editor-root" data-slug={slug} data-initial-description={initialDescription}>
+  <!-- Display state -->
+  <div id="desc-editor-display" class="flex items-start gap-1.5 mb-6">
+    <p id="desc-editor-p" class="text-ink-500 leading-relaxed font-light text-base flex-1">{initialDescription}</p>
+    <button
+      id="desc-editor-pencil-btn"
+      type="button"
+      disabled
+      aria-label="Edit description"
+      class="mt-0.5 shrink-0 text-ink-300 hover:text-ink-600 transition-colors opacity-50 cursor-not-allowed"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Edit state (hidden by default) -->
+  <div id="desc-editor-edit" style="display:none;" class="mb-6">
+    <textarea
+      id="desc-editor-textarea"
+      rows="4"
+      class="w-full text-ink-500 leading-relaxed font-light text-base border border-indigo-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-50 resize-y bg-transparent"
+    ></textarea>
+    <div class="flex items-center gap-2 mt-2">
+      <button
+        id="desc-editor-save-btn"
+        type="button"
+        class="px-3 py-1 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-500"
+      >
+        Save
+      </button>
+      <button
+        id="desc-editor-cancel-btn"
+        type="button"
+        class="px-2 py-1 text-sm text-ink-400 hover:text-ink-950"
+      >
+        ×
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { getToken, getFile, putFile } from '../lib/github';
+  import { parseFrontmatter, serializeFrontmatter } from '../lib/frontmatter';
+
+  const root = document.getElementById('desc-editor-root')!;
+  const slug = root.dataset.slug!;
+  let currentDesc = root.dataset.initialDescription!;
+
+  const displayEl = document.getElementById('desc-editor-display') as HTMLDivElement;
+  const editEl = document.getElementById('desc-editor-edit') as HTMLDivElement;
+  const p = document.getElementById('desc-editor-p') as HTMLParagraphElement;
+  const pencilBtn = document.getElementById('desc-editor-pencil-btn') as HTMLButtonElement;
+  const textarea = document.getElementById('desc-editor-textarea') as HTMLTextAreaElement;
+  const saveBtn = document.getElementById('desc-editor-save-btn') as HTMLButtonElement;
+  const cancelBtn = document.getElementById('desc-editor-cancel-btn') as HTMLButtonElement;
+
+  // ── Token gating ────────────────────────────────────────────────────────────
+
+  function updatePencilState() {
+    const hasToken = Boolean(getToken());
+    pencilBtn.disabled = !hasToken;
+    if (hasToken) {
+      pencilBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      pencilBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  updatePencilState();
+  document.addEventListener('pat-changed', () => updatePencilState());
+
+  // ── State transitions ────────────────────────────────────────────────────────
+
+  function enterEdit() {
+    saveBtn.textContent = 'Save';
+    saveBtn.disabled = false;
+    textarea.value = currentDesc;
+    displayEl.style.display = 'none';
+    editEl.style.display = 'block';
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  }
+
+  function exitEdit() {
+    editEl.style.display = 'none';
+    displayEl.style.display = 'flex';
+  }
+
+  pencilBtn.addEventListener('click', enterEdit);
+  cancelBtn.addEventListener('click', exitEdit);
+
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') exitEdit();
+    // Shift+Enter = newline (default); plain Enter = save
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      doSave();
+    }
+  });
+
+  // ── Save ────────────────────────────────────────────────────────────────────
+
+  saveBtn.addEventListener('click', doSave);
+
+  async function doSave() {
+    const newDesc = textarea.value.trim();
+    if (!newDesc || newDesc === currentDesc) {
+      exitEdit();
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+      const filePath = `src/content/bookmarks/${slug}.md`;
+      const { content, sha } = await getFile(filePath);
+      const { data, body } = parseFrontmatter(content);
+      data.description = newDesc;
+      const updated = serializeFrontmatter(data, body);
+      await putFile(filePath, updated, sha, `description: update ${slug}`);
+
+      currentDesc = newDesc;
+      p.textContent = newDesc;
+      window.toast?.('Description saved. Site rebuilding (~1 min).', 'success');
+      exitEdit();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      window.toast?.(`Failed to save description: ${message}`, 'error');
+      saveBtn.textContent = 'Save';
+      saveBtn.disabled = false;
+    }
+  }
+</script>

@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import TagChip from '../../components/TagChip.astro';
 import TagEditor from '../../components/TagEditor.astro';
 import TitleEditor from '../../components/TitleEditor.astro';
+import DescriptionEditor from '../../components/DescriptionEditor.astro';
 import DeleteButton from '../../components/DeleteButton.astro';
 import { getCollection } from 'astro:content';
 
@@ -45,7 +46,7 @@ const heroImage = data.screenshot || data.coverImage;
         </div>
 
         <TitleEditor slug={bookmark.slug} initialTitle={data.title} />
-        <p class="text-ink-500 leading-relaxed font-light mb-6 text-base">{data.description}</p>
+        <DescriptionEditor slug={bookmark.slug} initialDescription={data.description} />
 
         <div class="flex flex-wrap gap-2 mb-3">
           {data.tags.map(tag => <TagChip tag={tag} />)}
