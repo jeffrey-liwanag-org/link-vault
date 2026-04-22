@@ -44,15 +44,18 @@ export async function extractContent(html: string, url: string) {
 
 export async function takeScreenshot(url: string, outputPath: string) {
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 30_000 });
-  const buffer = await page.screenshot({ type: 'png' });
-  await browser.close();
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
+    const buffer = await page.screenshot({ type: 'png' });
 
-  await sharp(buffer)
-    .resize(1280, 800, { fit: 'inside', withoutEnlargement: true })
-    .png({ quality: 80, compressionLevel: 9 })
-    .toFile(outputPath);
+    await sharp(buffer)
+      .resize(1280, 800, { fit: 'inside', withoutEnlargement: true })
+      .png({ quality: 80, compressionLevel: 9 })
+      .toFile(outputPath);
+  } finally {
+    await browser.close();
+  }
 }
 
 export async function generateAIMetadata(title: string, text: string, url: string) {
@@ -133,16 +136,26 @@ async function main() {
   console.log('  → Taking screenshot...');
   await fs.mkdir(SCREENSHOTS_DIR, { recursive: true });
   const tmpSlug = slugify(title, { lower: true, strict: true }).slice(0, 60);
-  const screenshotPath = path.join(SCREENSHOTS_DIR, `${tmpSlug}.png`);
-  await takeScreenshot(url, screenshotPath);
+  const tmpScreenshotPath = path.join(SCREENSHOTS_DIR, `${tmpSlug}.png`);
+  let capturedScreenshot = true;
+  try {
+    await takeScreenshot(url, tmpScreenshotPath);
+  } catch (err) {
+    console.warn(`  ⚠ Screenshot skipped: ${(err as Error).message}`);
+    capturedScreenshot = false;
+  }
 
   console.log('  → Generating AI summary + tags...');
   const { summary, tags } = await generateAIMetadata(title, text, url);
   console.log(`  → Tags: ${tags.join(', ')}`);
 
   const slug = await makeSlug(title);
-  const finalScreenshotPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);
-  if (tmpSlug !== slug) await fs.rename(screenshotPath, finalScreenshotPath);
+  let finalScreenshotPath: string | undefined;
+  if (capturedScreenshot) {
+    finalScreenshotPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);
+    if (tmpSlug !== slug) await fs.rename(tmpScreenshotPath, finalScreenshotPath);
+    else finalScreenshotPath = tmpScreenshotPath;
+  }
 
   await writeMarkdown(slug, { url, title, description: summary, tags, screenshotPath: finalScreenshotPath, coverImage });
   console.log(`✓ Done — src/content/bookmarks/${slug}.md`);
