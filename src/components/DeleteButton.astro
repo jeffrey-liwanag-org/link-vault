@@ -1,0 +1,134 @@
+---
+interface Props {
+  slug: string;
+  title: string;
+  hasScreenshot: boolean;
+}
+
+const { slug, title, hasScreenshot } = Astro.props;
+---
+
+<div
+  id="delete-button-root"
+  data-slug={slug}
+  data-title={title}
+  data-has-screenshot={hasScreenshot ? 'true' : 'false'}
+>
+  <button
+    id="delete-btn"
+    type="button"
+    disabled
+    class="px-3 py-1.5 text-sm font-medium border border-red-300 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-400 transition-colors opacity-50 cursor-not-allowed"
+  >
+    Delete
+  </button>
+</div>
+
+<!-- Confirmation modal -->
+<div
+  id="delete-modal-backdrop"
+  style="display:none;"
+  class="fixed inset-0 z-[240] bg-black/50 items-center justify-center"
+>
+  <div class="bg-white rounded-xl max-w-sm w-full p-6 mx-4">
+    <h2 class="text-lg font-semibold text-ink-950 mb-2">Delete bookmark?</h2>
+    <p id="delete-modal-body" class="text-sm text-ink-600 mb-6"></p>
+    <div class="flex justify-end gap-3">
+      <button
+        id="delete-cancel-btn"
+        type="button"
+        class="px-3 py-1.5 text-sm font-medium border border-ink-300 text-ink-600 rounded-lg hover:bg-ink-50 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        id="delete-confirm-btn"
+        type="button"
+        class="px-3 py-1.5 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { getToken, getFile, deleteFile } from '../lib/github';
+
+  const root = document.getElementById('delete-button-root')!;
+  const slug = root.dataset.slug!;
+  const title = root.dataset.title!;
+  const hasScreenshot = root.dataset.hasScreenshot === 'true';
+
+  const deleteBtn = document.getElementById('delete-btn') as HTMLButtonElement;
+  const backdrop = document.getElementById('delete-modal-backdrop') as HTMLDivElement;
+  const modalBody = document.getElementById('delete-modal-body') as HTMLParagraphElement;
+  const cancelBtn = document.getElementById('delete-cancel-btn') as HTMLButtonElement;
+  const confirmBtn = document.getElementById('delete-confirm-btn') as HTMLButtonElement;
+
+  modalBody.textContent = `Delete '${title}'? This cannot be undone.`;
+
+  // ── Token gating ─────────────────────────────────────────────────────────────
+
+  function updateDeleteState() {
+    const hasToken = Boolean(getToken());
+    deleteBtn.disabled = !hasToken;
+    if (hasToken) {
+      deleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      deleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  updateDeleteState();
+  document.addEventListener('pat-changed', () => updateDeleteState());
+
+  // ── Modal open / close ────────────────────────────────────────────────────────
+
+  function openModal() {
+    backdrop.style.display = 'flex';
+  }
+
+  function closeModal() {
+    backdrop.style.display = 'none';
+  }
+
+  deleteBtn.addEventListener('click', openModal);
+  cancelBtn.addEventListener('click', closeModal);
+
+  // Close on backdrop click (outside the card)
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeModal();
+  });
+
+  // ── Delete ────────────────────────────────────────────────────────────────────
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.textContent = 'Deleting…';
+    confirmBtn.disabled = true;
+
+    try {
+      const mdPath = `src/content/bookmarks/${slug}.md`;
+      const { sha: mdSha } = await getFile(mdPath);
+      await deleteFile(mdPath, mdSha, `chore: delete ${slug}`);
+
+      if (hasScreenshot) {
+        const pngPath = `public/screenshots/${slug}.png`;
+        try {
+          const { sha: pngSha } = await getFile(pngPath);
+          await deleteFile(pngPath, pngSha, `chore: delete screenshot for ${slug}`);
+        } catch {
+          // Screenshot may be absent; ignore
+        }
+      }
+
+      window.toast('Deleted. Site rebuilding (~1 min).', 'success');
+      setTimeout(() => { window.location.href = '/link-vault/bookmarks/'; }, 800);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      window.toast(`Failed to delete: ${message}`, 'error');
+      confirmBtn.textContent = 'Delete';
+      confirmBtn.disabled = false;
+    }
+  });
+</script>
