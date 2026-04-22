@@ -82,8 +82,15 @@ ${text}`,
   return JSON.parse(raw) as { summary: string; tags: string[] };
 }
 
-export async function makeSlug(title: string): Promise<string> {
-  const base = slugify(title, { lower: true, strict: true }).slice(0, 60);
+function urlFallbackSlug(url: string): string {
+  const u = new URL(url);
+  const host = u.hostname.replace(/^www\./, '').replace(/\./g, '-');
+  const pathSlug = slugify(u.pathname, { lower: true, strict: true }).slice(0, 50);
+  return pathSlug ? `${host}-${pathSlug}` : host;
+}
+
+export async function makeSlug(title: string, url: string): Promise<string> {
+  const base = (slugify(title, { lower: true, strict: true }).slice(0, 60)) || urlFallbackSlug(url);
   let slug = base;
   let n = 2;
   while (await fs.access(path.join(BOOKMARKS_DIR, `${slug}.md`)).then(() => true).catch(() => false)) {
@@ -135,7 +142,7 @@ async function main() {
 
   console.log('  → Taking screenshot...');
   await fs.mkdir(SCREENSHOTS_DIR, { recursive: true });
-  const tmpSlug = slugify(title, { lower: true, strict: true }).slice(0, 60);
+  const tmpSlug = slugify(title, { lower: true, strict: true }).slice(0, 60) || urlFallbackSlug(url);
   const tmpScreenshotPath = path.join(SCREENSHOTS_DIR, `${tmpSlug}.png`);
   let capturedScreenshot = true;
   try {
@@ -149,7 +156,7 @@ async function main() {
   const { summary, tags } = await generateAIMetadata(title, text, url);
   console.log(`  → Tags: ${tags.join(', ')}`);
 
-  const slug = await makeSlug(title);
+  const slug = await makeSlug(title, url);
   let finalScreenshotPath: string | undefined;
   if (capturedScreenshot) {
     finalScreenshotPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);

@@ -44,6 +44,11 @@ jobs:
           git diff --staged --quiet || git commit -m "bookmark: ${{ steps.parse.outputs.url }}"
           git push
 
+      - name: Trigger deploy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy.yml --ref main
+
       - name: Close issue with comment
         uses: peter-evans/close-issue@v3
         with:

@@ -165,7 +165,7 @@ async function ingestMetadataOnly(bm: ParsedBookmark, index: number, total: numb
     return;
   }
 
-  const slug = await makeSlug(bm.title);
+  const slug = await makeSlug(bm.title, bm.url);
   await writeMarkdown(slug, {
     url: bm.url,
     title: bm.title,
@@ -220,7 +220,7 @@ async function ingestEnriched(bm: ParsedBookmark, index: number, total: number) 
     aiTags = folderToTags(bm.folderPath);
   }
 
-  const slug = await makeSlug(resolvedTitle);
+  const slug = await makeSlug(resolvedTitle, bm.url);
 
   if (screenshotPath) {
     const finalPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);
