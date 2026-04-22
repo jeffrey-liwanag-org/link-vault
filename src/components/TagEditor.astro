@@ -109,7 +109,7 @@ const { slug, initialTags, allTags } = Astro.props;
   const input = document.getElementById('tag-editor-input') as HTMLInputElement;
   const dropdown = document.getElementById('tag-editor-dropdown') as HTMLUListElement;
 
-  // Working state — a Set for O(1) dedup checks
+  // Working state — an array of current tags in the modal
   let currentTags: string[] = [...initialTags];
 
   // ── Token gating ──────────────────────────────────────────────────────────
@@ -170,7 +170,8 @@ const { slug, initialTags, allTags } = Astro.props;
 
   function tagsEqual(a: string[], b: string[]): boolean {
     if (a.length !== b.length) return false;
-    return a.every((v, i) => v === b[i]);
+    const bSet = new Set(b);
+    return a.every(v => bSet.has(v));
   }
 
   function updateSaveButton() {
@@ -281,11 +282,15 @@ const { slug, initialTags, allTags } = Astro.props;
     if (e.target === backdrop) closeModal();
   });
 
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && backdrop.style.display !== 'none') closeModal();
+  });
+
   // ── Save ──────────────────────────────────────────────────────────────────
 
   saveBtn.addEventListener('click', async () => {
     saveBtn.disabled = true;
-    const originalText = saveBtn.textContent;
     saveBtn.textContent = 'Saving…';
 
     try {
@@ -296,12 +301,14 @@ const { slug, initialTags, allTags } = Astro.props;
       const updated = serializeFrontmatter(data, body);
       await putFile(filePath, updated, sha, `tags: update ${slug}`);
 
+      initialTags.length = 0;
+      initialTags.push(...currentTags);
       window.toast?.('Tags saved. Site rebuilding (~1 min).', 'success');
       closeModal();
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       window.toast?.(`Failed to save tags: ${message}`, 'error');
-      saveBtn.textContent = originalText;
+      saveBtn.textContent = 'Save';
       updateSaveButton();
     }
   });
