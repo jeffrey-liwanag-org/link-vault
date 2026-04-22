@@ -35,6 +35,36 @@
     transform: translateY(0);
   }
 
+  /* View mode: container is both data-view host AND bookmarks-container */
+  .bookmarks-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .bookmarks-container { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .bookmarks-container { grid-template-columns: repeat(3, 1fr); }
+  }
+  .bookmarks-container[data-view="list"] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .bookmarks-container[data-view="headlines"] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Card variant visibility */
+  .bookmarks-container[data-view="grid"] .card-list,
+  .bookmarks-container[data-view="grid"] .card-headline { display: none; }
+  .bookmarks-container[data-view="list"] .card-grid,
+  .bookmarks-container[data-view="list"] .card-headline { display: none; }
+  .bookmarks-container[data-view="headlines"] .card-grid,
+  .bookmarks-container[data-view="headlines"] .card-list { display: none; }
+
   /* Hide scrollbar but keep scroll */
   .scrollbar-hide {
     -ms-overflow-style: none;

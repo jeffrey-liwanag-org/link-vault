@@ -86,7 +86,7 @@ async function enrichOne(bm: Bookmark, index: number, total: number): Promise<bo
     return false;
   }
 
-  const { title, text } = await extractContent(html, bm.url);
+  const { title, text, coverImage } = await extractContent(html, bm.url);
   const resolvedTitle = title || bm.title;
   console.log(`  → Title: ${resolvedTitle}`);
 
@@ -110,10 +110,11 @@ async function enrichOne(bm: Bookmark, index: number, total: number): Promise<bo
     `title: "${resolvedTitle.replace(/"/g, '\\"')}"`,
     `description: "${summary.replace(/"/g, '\\"')}"`,
     `tags: [${mergedTags.join(', ')}]`,
+    coverImage ? `coverImage: ${coverImage}` : null,
     `savedAt: ${bm.savedAt}`,
     `source: browser-import`,
     '---',
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 
   await fs.writeFile(bm.filePath, frontmatter + '\n');
   console.log(`  ✓ Updated`);

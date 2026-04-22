@@ -2,6 +2,9 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BookmarkCard from '../../components/BookmarkCard.astro';
 import TagChip from '../../components/TagChip.astro';
+import SearchBar from '../../components/SearchBar.astro';
+import ViewModeToggle from '../../components/ViewModeToggle.astro';
+import SortToggle from '../../components/SortToggle.astro';
 import { getCollection } from 'astro:content';
 
 const bookmarks = await getCollection('bookmarks');
@@ -14,21 +17,30 @@ const tagCounts = sorted.reduce<Record<string, number>>((acc, b) => {
 const allTags = Object.keys(tagCounts).sort();
 ---
 <BaseLayout title="All Bookmarks">
-  <div class="max-w-6xl mx-auto px-6">
+  <div class="max-w-6xl mx-auto px-6" data-pagefind-ignore>
 
     <!-- Header -->
-    <div class="mb-10 reveal">
+    <div class="mb-8 reveal">
       <h1 class="text-5xl font-bold tracking-tight text-warm-950 mb-2">All bookmarks</h1>
       <p class="text-warm-500 font-light">{sorted.length} saved</p>
     </div>
 
-    <!-- Tag filters -->
-    <div class="flex flex-wrap gap-2 mb-10 reveal">
-      {allTags.map(tag => <TagChip tag={tag} count={tagCounts[tag]} />)}
+    <!-- Search -->
+    <div class="mb-6 reveal">
+      <SearchBar />
     </div>
 
-    <!-- Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Controls: view + sort + tag filters -->
+    <div class="flex flex-wrap items-center gap-3 mb-8 reveal">
+      <ViewModeToggle />
+      <SortToggle />
+      <div class="flex flex-wrap gap-2 flex-1">
+        {allTags.map(tag => <TagChip tag={tag} count={tagCounts[tag]} />)}
+      </div>
+    </div>
+
+    <!-- Bookmarks container -->
+    <div id="bookmarks-container" class="bookmarks-container" data-view="grid">
       {sorted.map(b => (
         <BookmarkCard
           slug={b.slug}
@@ -36,6 +48,7 @@ const allTags = Object.keys(tagCounts).sort();
           description={b.data.description}
           tags={b.data.tags}
           screenshot={b.data.screenshot}
+          coverImage={b.data.coverImage}
           url={b.data.url}
           savedAt={b.data.savedAt}
         />
@@ -44,3 +57,45 @@ const allTags = Object.keys(tagCounts).sort();
 
   </div>
 </BaseLayout>
+
+<script>
+  const container = document.getElementById('bookmarks-container') as HTMLElement;
+  const viewBtns = document.querySelectorAll<HTMLButtonElement>('[data-view-btn]');
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+
+  // ── View mode ──────────────────────────────────────────────────────────────
+  function setView(view: string) {
+    container.dataset.view = view;
+    localStorage.setItem('linkVaultView', view);
+    viewBtns.forEach(btn => {
+      const active = btn.dataset.viewBtn === view;
+      btn.classList.toggle('bg-coral', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('text-stone-400', !active);
+    });
+  }
+
+  const savedView = localStorage.getItem('linkVaultView') || 'grid';
+  setView(savedView);
+  viewBtns.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.viewBtn!)));
+
+  // ── Sort ───────────────────────────────────────────────────────────────────
+  const cards = [...container.querySelectorAll<HTMLElement>('[data-saved-at]')];
+
+  function sortCards(order: string) {
+    localStorage.setItem('linkVaultSort', order);
+    const sorted = [...cards].sort((a, b) => {
+      if (order === 'date-desc') return new Date(b.dataset.savedAt!).getTime() - new Date(a.dataset.savedAt!).getTime();
+      if (order === 'date-asc')  return new Date(a.dataset.savedAt!).getTime() - new Date(b.dataset.savedAt!).getTime();
+      if (order === 'title-az')  return (a.dataset.title ?? '').localeCompare(b.dataset.title ?? '');
+      if (order === 'domain-az') return (a.dataset.domain ?? '').localeCompare(b.dataset.domain ?? '');
+      return 0;
+    });
+    sorted.forEach(card => container.appendChild(card));
+  }
+
+  const savedSort = localStorage.getItem('linkVaultSort') || 'date-desc';
+  sortSelect.value = savedSort;
+  sortCards(savedSort);
+  sortSelect.addEventListener('change', () => sortCards(sortSelect.value));
+</script>

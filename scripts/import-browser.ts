@@ -105,7 +105,11 @@ function parseBookmarkHtml(html: string): ParsedBookmark[] {
         const segStart = match.index - 200 < 0 ? 0 : match.index - 200;
         const seg = html.slice(segStart, match.index);
         const titleM = seg.match(/>([^<]+)$/);
-        const title = titleM?.[1]?.trim() || new URL(pendingA.href).hostname;
+        const rawTitle = titleM?.[1]?.trim() || new URL(pendingA.href).hostname;
+        const title = rawTitle
+          .replace(/&quot;/g, '"').replace(/&amp;/g, '&')
+          .replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+          .replace(/&#(\d+);/g, (_, n: string) => String.fromCharCode(parseInt(n, 10)));
         results.push({
           url: pendingA.href,
           title,

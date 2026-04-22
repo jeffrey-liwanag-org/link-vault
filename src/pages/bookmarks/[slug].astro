@@ -12,6 +12,7 @@ const { bookmark } = Astro.props;
 const { data } = bookmark;
 const domain = new URL(data.url).hostname.replace('www.', '');
 const dateStr = data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+const heroImage = data.screenshot || data.coverImage;
 ---
 <BaseLayout title={data.title}>
   <div class="max-w-2xl mx-auto px-6">
@@ -20,11 +21,11 @@ const dateStr = data.savedAt.toLocaleDateString('en-GB', { day: '2-digit', month
       ← All bookmarks
     </a>
 
-    <article class="bg-white rounded-4xl p-8 border border-stone-100 shadow-soft reveal">
+    <article class="bg-white rounded-4xl p-8 border border-stone-100 shadow-soft reveal" data-pagefind-body>
 
-      {data.screenshot && (
+      {heroImage && (
         <div class="rounded-3xl overflow-hidden border border-stone-100 mb-8">
-          <img src={data.screenshot} alt={data.title} class="w-full" />
+          <img src={heroImage} alt={data.title} class="w-full" />
         </div>
       )}
 

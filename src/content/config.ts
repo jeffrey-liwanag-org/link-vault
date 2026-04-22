@@ -8,6 +8,7 @@ const bookmarks = defineCollection({
     description: z.string(),
     tags: z.array(z.string()),
     screenshot: z.string().optional(),
+    coverImage: z.string().url().optional(),
     savedAt: z.coerce.date(),
     source: z.enum(['bookmarklet', 'manual', 'browser-import']).default('bookmarklet'),
     note: z.string().optional(),

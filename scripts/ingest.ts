@@ -24,9 +24,21 @@ export async function extractContent(html: string, url: string) {
   const dom = new JSDOM(html, { url });
   const reader = new Readability(dom.window.document);
   const article = reader.parse();
+
+  const rawOg =
+    dom.window.document.querySelector('meta[property="og:image"]')?.getAttribute('content') ||
+    dom.window.document.querySelector('meta[name="twitter:image"]')?.getAttribute('content') ||
+    dom.window.document.querySelector('meta[property="og:image:secure_url"]')?.getAttribute('content');
+
+  let coverImage: string | undefined;
+  if (rawOg) {
+    try { coverImage = new URL(rawOg, url).href; } catch { /* skip invalid */ }
+  }
+
   return {
     title: article?.title ?? new URL(url).hostname,
     text: article?.textContent?.slice(0, 8000) ?? '',
+    coverImage,
   };
 }
 
@@ -79,7 +91,7 @@ export async function makeSlug(title: string): Promise<string> {
 
 export async function writeMarkdown(slug: string, data: {
   url: string; title: string; description: string;
-  tags: string[]; screenshotPath?: string; source?: string; savedAt?: Date;
+  tags: string[]; screenshotPath?: string; coverImage?: string; source?: string; savedAt?: Date;
 }) {
   const date = (data.savedAt ?? new Date()).toISOString().split('T')[0];
   const screenshot = data.screenshotPath
@@ -93,6 +105,7 @@ export async function writeMarkdown(slug: string, data: {
     `description: "${data.description.replace(/"/g, '\\"')}"`,
     `tags: [${data.tags.join(', ')}]`,
     screenshot ? `screenshot: ${screenshot}` : null,
+    data.coverImage ? `coverImage: ${data.coverImage}` : null,
     `savedAt: ${date}`,
     `source: ${data.source ?? 'bookmarklet'}`,
     '---',
@@ -114,7 +127,7 @@ async function main() {
 
   console.log('  → Fetching page...');
   const html = await fetchPage(url);
-  const { title, text } = await extractContent(html, url);
+  const { title, text, coverImage } = await extractContent(html, url);
   console.log(`  → Title: ${title}`);
 
   console.log('  → Taking screenshot...');
@@ -131,7 +144,7 @@ async function main() {
   const finalScreenshotPath = path.join(SCREENSHOTS_DIR, `${slug}.png`);
   if (tmpSlug !== slug) await fs.rename(screenshotPath, finalScreenshotPath);
 
-  await writeMarkdown(slug, { url, title, description: summary, tags, screenshotPath: finalScreenshotPath });
+  await writeMarkdown(slug, { url, title, description: summary, tags, screenshotPath: finalScreenshotPath, coverImage });
   console.log(`✓ Done — src/content/bookmarks/${slug}.md`);
 }
 
